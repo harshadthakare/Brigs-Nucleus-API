@@ -15,7 +15,7 @@ class Dashboard {
     }
     static getAllNotDoneCheckistAssets(organizationIdFK) {
         let sql = `SELECT a.assetId,a.assetCode,assetTitle,a.modelNumber,a.description,CONCAT('${BASE_URL}','',a.image) as assetImage FROM asset a
-                   LEFT JOIN donechecklist d ON d.assetIdFK = assetId
+                   LEFT JOIN donechecklist d ON d.assetIdFK = a.assetId
                    WHERE d.assetIdFK IS NULL AND a.organizationIdFK = ${organizationIdFK} AND a.isDeleted = 0`
         return sql;
     }
