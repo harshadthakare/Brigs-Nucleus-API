@@ -48,7 +48,7 @@ router.get("/home", (req, res, next) => {
 
 /**
  * @swagger
- * /dashboard/getNotDoneMaintaineceAsset:
+ * /dashboard/getMaintenanceNotDoneAssets/{pageNo}:
  *   get:
  *     tags:
  *       -  Dashboard
@@ -56,6 +56,10 @@ router.get("/home", (req, res, next) => {
  *     produces:
  *       - application/json
  *     parameters:
+ *       - name: pageNo
+ *         description: "Page Number always starts with 0"
+ *         in: path
+ *         required: true
  *       - name: Authorization
  *         description: token
  *         in: header
@@ -67,24 +71,54 @@ router.get("/home", (req, res, next) => {
  *         description: Not found
  */
 
-router.get("/getNotDoneMaintaineceAsset", (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+router.get("/getMaintenanceNotDoneAssets/:pageNo", (req, res, next) => {
+    verifyToken(req, res, tokendata => {
+        const limit = 10;
+        const page = req.params.pageNo;
+        var pageCount1 = 0;
+        db.query(Dashboard.getMaintenanceNotDoneAssetCount(tokendata.organizationIdFK), (err2, data2) => {
+     
+            let totalMaintenceRemainingAssets = data2[0].totalMaintenceRemainingAssets;
+            
+            if (data2) {
+                db.query(Dashboard.getAllNotDoneMaintenceAssets(tokendata.organizationIdFK), (err1, data1) => {
+                    if (data1) {
 
-        db.query(Dashboard.getAllNotDoneCheckistAssets(organizationIdFK), (err, data) => {
-            if (!err) {
-                if (data && data.length > 0) {
-                    res.status(200).json({
-                        "dashboard": data,
-                        message: "List of Assets Whose Maintainece not done"
-                    });
-                } else {
-                    res.status(200).json({
-                        status: false,
-                        message: "Not found"
-                    });
-                }
+                        pageCount1 = data1.length;
+                        db.query(Dashboard.getAllNotDoneMaintenceAssets(tokendata.organizationIdFK, limit, page), (err, data) => {
+                            if (!err) {
+                                if (data && data.length > 0) {
+                                    res.status(200).json({
+                                        "currentPage": page,
+                                        "totalCount": pageCount1,
+                                        "totalMaintenceRemainingAssets":totalMaintenceRemainingAssets,
+                                        "dashboard": data,
+                                        message: "List of Assets Whose Maintainece not done"
+                                    });
+                                } else {
+                                    res.status(200).json({
+                                        "currentPage": page,
+                                        "totalCount": pageCount1,
+                                        "dashboard": [],
+                                        message: "Not found"
+                                    });
+                                }
+                            }
+                        });
+                    } else {
+                        res.status(400).json({
+                            message: "Something went wrong...!!"
+                        });
+                    }
+
+                })
+            } else {
+                res.status(400).json({
+                    message: "Something went wrong...!!"
+                });
             }
         });
+
     })
 });
 

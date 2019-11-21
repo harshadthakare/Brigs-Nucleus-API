@@ -1,4 +1,4 @@
-const {BASE_URL} = require("../config/constants");
+const { BASE_URL } = require("../config/constants");
 class Dashboard {
 
     constructor(obj) {
@@ -13,16 +13,23 @@ class Dashboard {
         FROM asset WHERE organizationIdFK = ${organizationIdFK} AND isDeleted = 0`;
         return sql;
     }
-    static getAllNotDoneCheckistAssets(organizationIdFK) {
-        // let sql = `SELECT a.assetId,a.assetCode,assetTitle,a.modelNumber,a.description,CONCAT('${BASE_URL}','',a.image) as assetImage FROM asset a
-        //            LEFT JOIN donechecklist d ON d.assetIdFK = a.assetId
-        //            WHERE d.assetIdFK IS NULL AND a.organizationIdFK = ${organizationIdFK} AND a.isDeleted = 0`
-        let sql = `SELECT a.assetId,a.assetCode,assetTitle,a.modelNumber,a.description,CONCAT('${BASE_URL}','',a.image) as assetImage,c.title 
+    static getAllNotDoneMaintenceAssets(organizationIdFK, limit = 0, start = 0) {
+        let startLimit = limit * start;
+
+        let limitString = (limit > 0) ? `LIMIT ${startLimit}, ${limit}` : '';
+
+        let sql = `SELECT a.assetId,a.assetCode,assetTitle,a.modelNumber,a.description,CONCAT('${BASE_URL}','',a.image) as assetImage
+                    FROM asset a 
+                    LEFT JOIN donechecklist d ON d.assetIdFK = a.assetId    
+                    WHERE d.assetIdFK IS NULL AND a.organizationIdFK = ${organizationIdFK} AND a.isDeleted = 0
+                    ORDER BY a.createdOn DESC ${limitString}`;
+        return sql;
+    }
+    static getMaintenanceNotDoneAssetCount(organizationIdFK) {
+        let sql = `SELECT COUNT(a.assetId) AS totalMaintenceRemainingAssets 
                     FROM asset a 
                     LEFT JOIN donechecklist d ON d.assetIdFK = a.assetId 
-                    LEFT JOIN assetcatrelation a1 ON a1.assetIdFK = a.assetId 
-                    LEFT JOIN category c ON a1.categoryIdFK = c.categoryId 
-                    WHERE d.assetIdFK IS NULL AND a.organizationIdFK = 1 AND a.isDeleted = 0 `
+                    WHERE d.assetIdFK IS NULL AND a.organizationIdFK = ${organizationIdFK} AND a.isDeleted = 0`
         return sql;
     }
 }
