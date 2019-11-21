@@ -26,9 +26,9 @@ const router = express.Router();
  *         description: Not found
  */
 router.get("/allRootCategories", (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
-        db.query(AssetHome.getRootCategory(organizationIdFK), (err, data) => {
+        db.query(AssetHome.getRootCategory(tokendata.organizationIdFK), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({
@@ -70,10 +70,10 @@ router.get("/allRootCategories", (req, res, next) => {
  *         description: Not found
  */
 router.get("/allCategories/:categoryId", (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
         let cId = req.params.categoryId;
 
-        db.query(AssetHome.getAllCategory(organizationIdFK,cId), (err, data) => {
+        db.query(AssetHome.getAllCategory(tokendata.organizationIdFK,cId), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({
@@ -122,7 +122,7 @@ router.get("/categorySearch/",[
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
      
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
         // send response of validation to client
         const errors = validationResult(req);
@@ -133,7 +133,7 @@ router.get("/categorySearch/",[
 
         let keyword = req.query.keyword;
 
-        db.query(AssetHome.getAllCategorySearchSQL(organizationIdFK, keyword), (err, data) => {
+        db.query(AssetHome.getAllCategorySearchSQL(tokendata.organizationIdFK, keyword), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({

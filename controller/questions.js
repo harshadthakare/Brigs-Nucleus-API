@@ -38,19 +38,19 @@ const router = express.Router();
  */
 
 router.get("/listOfCheckListWithQuestions/:categoryId/:pageNo", (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
         const limit = 10;
         const page = req.params.pageNo;
         var pageCount1 = 0;
         let categoryId = req.params.categoryId;
 
 
-        db.query(Question.getQuestionCountByChecklistSQL(organizationIdFK, categoryId), (err1, data1) => {
+        db.query(Question.getQuestionCountByChecklistSQL(tokendata.organizationIdFK, categoryId), (err1, data1) => {
 
             if (data1) {
                 pageCount1 = data1.length;
 
-                db.query(Question.getQuestionCountByChecklistSQL(organizationIdFK, categoryId, limit, page), (err, data) => {
+                db.query(Question.getQuestionCountByChecklistSQL(tokendata.organizationIdFK, categoryId, limit, page), (err, data) => {
                     if (!err) {
                         if (data && data.length > 0) {
                             res.status(200).json({
@@ -117,7 +117,7 @@ router.get("/listOfCheckListWithQuestions/:categoryId/:pageNo", (req, res, next)
  */
 
 router.get("/questionsList/:checklistId/:pageNo", (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
         const limit = 10;
         const page = req.params.pageNo;
         var pageCount1 = 0;
@@ -193,7 +193,7 @@ router.get("/allChecklistSearch/", [
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
 
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
         // send response of validation to client
         const errors = validationResult(req);
@@ -205,7 +205,7 @@ router.get("/allChecklistSearch/", [
         let categoryIdFK = req.query.categoryIdFK;
         let keyword = req.query.keyword;
 
-        db.query(Question.getChecklistSearchSQL(organizationIdFK, categoryIdFK, keyword), (err, data) => {
+        db.query(Question.getChecklistSearchSQL(tokendata.organizationIdFK, categoryIdFK, keyword), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({
@@ -310,7 +310,7 @@ router.post("/addQuestion", [
     // Indicates the success of this synchronous custom validator
 
 ], (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
         // send response of validation to client
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -457,7 +457,7 @@ router.put("/updateQuestion", [
     // Indicates the success of this synchronous custom validator
 
 ], (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
         // send response of validation to client
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -473,41 +473,49 @@ router.put("/updateQuestion", [
             if (data) {
 
                 if (!err) {
-                    for (let index = 0; index < options.length; index++) {
+                    if(options.length > 0){
+                        
+                        for (let index = 0; index < options.length; index++) {
 
-                        const element = options[index];
-                        let option = new Question(element);
-                        let questionOptionId = element.questionOptionId;
-
-                        db.query(option.checkOptionIdSQL(questionOptionId), (err1, data2) => {
-                            let optionIdCount = data2[0].optionIdCount;
-                            let sql = ''
-                            if (optionIdCount > 0) {
-                                sql = option.updateQuestionOptionSQL(questionOptionId)
-                            } else {
-                                sql = option.addQuestionOptionSQL(questionId)
-                            }
-                            db.query(sql, (err, data1) => {
-                                
-                                if (index == options.length - 1 && !err) {
-                                    if (data && data.affectedRows > 0) {
-                                        res.status(200).json({
-                                            message: "Question updated successfully",
-                                            affectedRows: data.affectedRows
-                                        })
-                                    } else {
-                                        res.status(400).json({
-                                            message: "Something went wrong, Please try again"
-                                        });
+                            const element = options[index];
+                            let option = new Question(element);
+                            let questionOptionId = element.questionOptionId;
+    
+                            db.query(option.checkOptionIdSQL(questionOptionId), (err1, data2) => {
+                                let optionIdCount = data2[0].optionIdCount;
+                                let sql = ''
+                                if (optionIdCount > 0) {
+                                    sql = option.updateQuestionOptionSQL(questionOptionId)
+                                } else {
+                                    sql = option.addQuestionOptionSQL(questionId)
+                                }
+                                db.query(sql, (err, data1) => {
+                                    
+                                    if (index == options.length - 1 && !err) {
+                                        if (data && data.affectedRows > 0) {
+                                            res.status(200).json({
+                                                message: "Question updated successfully",
+                                                affectedRows: data.affectedRows
+                                            })
+                                        } else {
+                                            res.status(400).json({
+                                                message: "Something went wrong, Please try again"
+                                            });
+                                        }
                                     }
-                                }
-                                if (err) {
-                                    res.status(400).json({
-                                        message: err.message
-                                    });
-                                    return;
-                                }
-                            });
+                                    if (err) {
+                                        res.status(400).json({
+                                            message: err.message
+                                        });
+                                        return;
+                                    }
+                                });
+                            })
+                        }
+                    }else{
+                        res.status(200).json({
+                            message: "Question updated successfully",
+                            affectedRows: data.affectedRows
                         })
                     }
                 }
@@ -550,7 +558,7 @@ router.put("/updateQuestion", [
  */
 router.delete("/deleteQuestion/:questionId", (req, res, next) => {
 
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
         var qId = req.params.questionId;
 
         db.query(Question.deleteQuestionOptionByIdSQL(qId), (err, data) => {
@@ -601,9 +609,10 @@ router.delete("/deleteQuestion/:questionId", (req, res, next) => {
  *       400:
  *         description: Bad request
  */
+
 router.delete("/deleteQuestionOption/:questionOptionId", (req, res, next) => {
 
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
         var qId = req.params.questionOptionId;
 
         db.query(Question.deleteOptionByIdSQL(qId), (err, data) => {
@@ -714,7 +723,7 @@ router.post("/addLinkQuestion/:questionOptionId", [
     // Indicates the success of this synchronous custom validator
 
 ], (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
         // send response of validation to client
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -813,7 +822,7 @@ router.post("/addLinkQuestion/:questionOptionId", [
  */
 
 router.get("/viewParticularQuestionWithOptions/:questionId", (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
         let questionId = req.params.questionId;
 
@@ -908,7 +917,7 @@ const getLinkedQuestion = (questionId, callback) => {
  */
 
 router.get("/selectQuestionType", (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
 
         db.query(Question.getQuestionType(), (err, data) => {
             if (!err) {

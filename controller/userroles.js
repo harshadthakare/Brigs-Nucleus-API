@@ -45,16 +45,16 @@ const router = express.Router();
 
 router.get("/listOfUserRoles/:pageNo", (req, res, next) => {
 
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
         const limit = 10;
         const page = req.params.pageNo;
         var pageCount1 = 0;
 
-        db.query(UserRole.getAllUserRolesSQL(organizationIdFK), (err1, data1) => {
+        db.query(UserRole.getAllUserRolesSQL(tokendata.organizationIdFK), (err1, data1) => {
             if (data1) {
                 pageCount1 = data1.length;
 
-                db.query(UserRole.getAllUserRolesSQL(organizationIdFK, limit, page), (err, data) => {
+                db.query(UserRole.getAllUserRolesSQL(tokendata.organizationIdFK, limit, page), (err, data) => {
                     if (!err) {
                         if (data && data.length > 0) {
                             res.status(200).json({
@@ -112,7 +112,7 @@ router.get("/listOfUserRoles/:pageNo", (req, res, next) => {
  *          $ref: '#/definitions/UserRoles'   
  */
 router.get("/viewParticularUserRole/:userRoleId", (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
         let urid = req.params.userRoleId;
 
 
@@ -167,14 +167,14 @@ router.post("/addUserRole", [
     check('title').trim().isAlpha().withMessage('Only characters are allowed'),
     // validation rules end 
 ], (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(422).json({ errors: errors.array() });
         }
         let urid = new UserRole(req.body);
-        urid.organizationIdFK = organizationIdFK;
+        urid.organizationIdFK = tokendata.organizationIdFK;
 
         db.query(urid.addUserRoleSQL(), (err, data) => {
             if (!err) {
@@ -231,7 +231,7 @@ router.put("/UpdateUserRole/:userRoleId", [
     check('title').trim().isAlpha().withMessage('Only characters are allowed'),
     // validation rules end 
 ], (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
 
         // send response of validation to client
         const errors = validationResult(req);
@@ -301,7 +301,7 @@ router.put("/UpdateUserRole/:userRoleId", [
  */
 
 router.put("/deleteUserRole/:userRoleId", (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
         var urId = req.params.userRoleId;
         db.query(UserRole.checkUserroleId(urId), (err, data) => {
             if (data.length > 0) {

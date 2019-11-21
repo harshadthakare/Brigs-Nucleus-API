@@ -41,9 +41,9 @@ const router = express.Router();
  */
 
 router.get("/categoryList", (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
-        db.query(AssetCategory.getAllCategories(organizationIdFK), (err, data) => {
+        db.query(AssetCategory.getAllCategories(tokendata.organizationIdFK), (err, data) => {
 
             let allCategory = data;
             if (!err) {
@@ -102,7 +102,7 @@ router.get("/allCategorySearch/", [
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
 
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
         // send response of validation to client
         const errors = validationResult(req);
@@ -113,7 +113,7 @@ router.get("/allCategorySearch/", [
 
         let keyword = req.query.keyword;
 
-        db.query(AssetCategory.getCategorySearchSQL(organizationIdFK, keyword), (err, data) => {
+        db.query(AssetCategory.getCategorySearchSQL(tokendata.organizationIdFK, keyword), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({
@@ -174,7 +174,7 @@ router.post("/addAssetCategory", [
 
     // validation rules end 
 ], (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
         // send response of validation to client
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -183,7 +183,7 @@ router.post("/addAssetCategory", [
         // ....!  end send response of validation to client
 
         let assetcategory = new AssetCategory(req.body);
-        assetcategory.organizationIdFK = organizationIdFK;
+        assetcategory.organizationIdFK = tokendata.organizationIdFK;
 
         db.query(assetcategory.addAssetCategorySQL(), (err, data) => {
             if (!err) {
@@ -248,7 +248,7 @@ router.put("/updateAssetCategory/:categoryId", [
 
     // validation rules end 
 ], (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
 
         // send response of validation to client
         const errors = validationResult(req);
@@ -317,7 +317,7 @@ router.put("/updateAssetCategory/:categoryId", [
  *         description: Bad request
  */
 router.put("/deleteAssetCategory/:categoryId", (req, res, next) => {
-    verifyToken(req, res, dId => {
+    verifyToken(req, res, tokendata => {
         var cId = req.params.categoryId;
 
         db.query(AssetCategory.checkAssetCategoryId(cId), (err, data) => {
@@ -370,9 +370,9 @@ router.put("/deleteAssetCategory/:categoryId", (req, res, next) => {
  *         description: Bad request
  */
 router.get("/selectAssetCategory", (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
-        db.query(AssetCategory.getAssetCategorySQL(organizationIdFK), (err, data) => {
+        db.query(AssetCategory.getAssetCategorySQL(tokendata.organizationIdFK), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({

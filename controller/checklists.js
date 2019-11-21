@@ -68,7 +68,7 @@ router.post("/addChecklist", [
     })
     // validation rules end 
 ], (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
         // send response of validation to client
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -77,7 +77,7 @@ router.post("/addChecklist", [
         // ....!  end send response of validation to client
 
         let checklist = new Checklist(req.body);
-        checklist.organizationIdFK = organizationIdFK;
+        checklist.organizationIdFK = tokendata.organizationIdFK;
 
         db.query(checklist.addChecklistSQL(), (err, data) => {
             if (!err) {
@@ -149,7 +149,7 @@ router.put("/updateChecklist/:checklistId", [
     })
     // validation rules end 
 ], (req, res, next) => {
-    verifyToken(req, res, cId => {
+    verifyToken(req, res, tokendata => {
 
         // send response of validation to client
         const errors = validationResult(req);
@@ -217,7 +217,7 @@ router.put("/updateChecklist/:checklistId", [
  *         description: Bad request
  */
 router.put("/deleteChecklist/:checklistId", (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
         var cId = req.params.checklistId;
 
         db.query(Checklist.checkChecklistId(cId), (err, data) => {
@@ -276,16 +276,16 @@ router.put("/deleteChecklist/:checklistId", (req, res, next) => {
 */
 
 router.get("/listOfCheckists/:pageNo", (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
         const limit = 10;
         const page = req.params.pageNo;
         var pageCount1 = 0;
 
-        db.query(Checklist.getAllChecklistsSQL(organizationIdFK), (err1, data1) => {
+        db.query(Checklist.getAllChecklistsSQL(tokendata.organizationIdFK), (err1, data1) => {
             if (data1) {
                 pageCount1 = data1.length;
 
-                db.query(Checklist.getAllChecklistsSQL(organizationIdFK, limit, page), (err, data) => {
+                db.query(Checklist.getAllChecklistsSQL(tokendata.organizationIdFK, limit, page), (err, data) => {
                     if (!err) {
                         if (data && data.length > 0) {
                             res.status(200).json({
@@ -342,7 +342,7 @@ router.get("/listOfCheckists/:pageNo", (req, res, next) => {
 */
 
 router.get("/viewParticularChecklist/:checklistId", (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
         let cid = req.params.checklistId;
         db.query(Checklist.getChecklistByIdSQL(cid), (err, data) => {
             if (!err) {

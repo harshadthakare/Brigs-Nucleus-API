@@ -7,7 +7,8 @@ class Profile{
     {
         let sql = `SELECT a.adminId,CONCAT(a.firstName,' ',a.lastName)as adminName,a.mobileNumber,a.emailId,o.organizationName from admin a 
                    JOIN organization o ON a.organizationIdFK = o.organizationId WHERE a.adminId = ${aId}`;
-        return sql;
+                
+        return sql;   
     }
 
     static getPerAdminData(password)

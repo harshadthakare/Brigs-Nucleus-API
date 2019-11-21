@@ -45,9 +45,9 @@ const router = express.Router();
  */
 
 router.get("/departmentList", (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
-        db.query(Dept.getAllDeptSQL(organizationIdFK), (err, data) => {
+        db.query(Dept.getAllDeptSQL(tokendata.organizationIdFK), (err, data) => {
             
             let allDepartments = data;
             if (!err) {
@@ -103,7 +103,7 @@ router.get("/departmentList", (req, res, next) => {
  *         description: Bad request
  */
 router.get("/viewParticularDepartment/:departmentId", (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
         let uid = req.params.departmentId;
 
         db.query(Dept.getDeptByIdSQL(uid), (err, data) => {
@@ -166,7 +166,7 @@ router.post("/addDepartment", [
 
     // validation rules end 
 ], (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
         // send response of validation to client
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -175,9 +175,10 @@ router.post("/addDepartment", [
         // ....!  end send response of validation to client
 
         let dept = new Dept(req.body);
-        dept.organizationIdFK = organizationIdFK;
+        dept.organizationIdFK = tokendata.organizationIdFK;
 
         db.query(dept.addDeptSQL(), (err, data) => {
+        	console.log(err);
             if (!err) {
                 res.status(200).json({
                     message: "Department added successfully",
@@ -241,7 +242,7 @@ router.put("/updateDepartment/:departmentId", [
 
     // validation rules end 
 ], (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
 
         // send response of validation to client
         const errors = validationResult(req);
@@ -310,7 +311,7 @@ router.put("/updateDepartment/:departmentId", [
  *         description: Bad request
  */
 router.put("/deleteDepartment/:departmentId", (req, res, next) => {
-    verifyToken(req, res, dId => {
+    verifyToken(req, res, tokendata => {
         var dId = req.params.departmentId;
 
         db.query(Dept.checkDepartmentId(dId), (err, data) => {
@@ -364,9 +365,9 @@ router.put("/deleteDepartment/:departmentId", (req, res, next) => {
  *         description: Bad request
  */
 router.get("/selectDepartment", (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
-                db.query(Dept.getDeptSQL(organizationIdFK), (err, data) => {
+                db.query(Dept.getDeptSQL(tokendata.organizationIdFK), (err, data) => {
                     if (!err) {
                         if (data && data.length > 0) {
 

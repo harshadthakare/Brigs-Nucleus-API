@@ -26,14 +26,14 @@ class Dept {
 
     addDeptSQL() {
 
-        let sql = `INSERT into DEPARTMENT (parentId, departmentTitle, organizationIdFK) 
-                    VALUES (if(${this.parentId}=0,(SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE TABLE_SCHEMA = "${DATABASE}" AND TABLE_NAME = "DEPARTMENT"),
+        let sql = `INSERT into department (parentId, departmentTitle, organizationIdFK) 
+                    VALUES (if(${this.parentId}=0,(SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE TABLE_SCHEMA = "${DATABASE}" AND TABLE_NAME = "department"),
                     ${this.parentId}), '${this.departmentTitle}', ${this.organizationIdFK})`;
         return sql;
     }
 
     static deleteDeptByIdSQL(departmentId) {
-        let sql = `UPDATE DEPARTMENT SET  
+        let sql = `UPDATE department SET  
         isDeleted = 1 
         WHERE departmentId = ${departmentId}`;
         return sql;

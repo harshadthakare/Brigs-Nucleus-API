@@ -28,9 +28,9 @@ const router = express.Router();
  *         description: Bad request
  */
 router.get("/viewAdminProfile", (req, res, next) => {
-    verifyToken(req, res, adminId => {
-        let aId = adminId;
-
+    verifyToken(req, res, tokendata => {
+        
+        let aId = tokendata.adminId;
         db.query(Profile.getAdminProfile(aId), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
@@ -92,14 +92,14 @@ router.get("/viewAdminProfile", (req, res, next) => {
 */
 
 router.post("/changepassword", (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
         let password = req.body.password;
         let newPassword = req.body.newPassword;
 
         db.query(Profile.getPerAdminData(password), (err, data) => {
             if (data.length > 0) {
 
-                let aId = data[0].adminId;
+                let aId = tokendata.adminId;
                 db.query(Profile.updatePasswordById(newPassword, aId, password), (err, data) => {
                     if (!err) {
                         if (data.changedRows == 1) {

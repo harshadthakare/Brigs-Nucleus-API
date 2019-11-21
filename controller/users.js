@@ -95,7 +95,7 @@ var upload = multer({ storage: storage });
  */
 
 router.get("/listOfUsers/:departmentId/:pageNo", (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
         const limit = 10;
         const page = req.params.pageNo;
         var pageCount1 = 0;
@@ -169,7 +169,7 @@ router.get("/userSearch/",[
     // validation rules start 
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
         // send response of validation to client
         const errors = validationResult(req);
@@ -228,7 +228,7 @@ router.get("/userSearch/",[
  */
 
 router.get("/viewParticularUser/:userId", (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
         let uid = req.params.userId;
 
         db.query(User.getUserByIdSQL(uid), (err, data) => {
@@ -302,7 +302,7 @@ router.post("/addUser", [
     // validation rules end 1
 ], (req, res, next) => {
 
-    verifyToken(req, res, uId => {
+    verifyToken(req, res, tokendata => {
         // send response of validation to client
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -328,7 +328,7 @@ router.post("/addUser", [
                     message='Something went wrong'
                 }
 
-                res.status(400).json({
+                res.status(200).json({
                     message: message
                 });
             }
@@ -396,7 +396,7 @@ router.put("/updateUser/:userId", [
     // validation rules end 1
 ],
     (req, res, next) => {
-        verifyToken(req, res, adminId => {
+        verifyToken(req, res, tokendata => {
             // send response of validation to client
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
@@ -425,7 +425,7 @@ router.put("/updateUser/:userId", [
                                     message='Something went wrong'
                                 }
 
-                                res.status(400).json({
+                                res.status(200).json({
                                     message: message
                                 });
                             }
@@ -433,7 +433,7 @@ router.put("/updateUser/:userId", [
                     });
                 }
                 else {
-                    res.status(404).json({
+                    res.status(200).json({
                         message: "User ID is not available"
                     });
                 }
@@ -470,7 +470,7 @@ router.put("/updateUser/:userId", [
  */
 
 router.put("/deleteUser/:userId", (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
         var uId = req.params.userId;
 
         db.query(User.checkUserId(uId), (err, data) => {
@@ -529,7 +529,7 @@ module.exports = router;
  */
 
 router.post('/uploadProfileImage', upload.single('file'), (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
         if (!req.file) {
             res.status(500).json({
                 message: "Please Select image File",
@@ -567,9 +567,9 @@ router.post('/uploadProfileImage', upload.single('file'), (req, res, next) => {
  *         description: Bad request
  */
 router.get("/selectUserRole", (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
-        db.query(User.getUserRoleList(organizationIdFK), (err, data) => {
+        db.query(User.getUserRoleList(tokendata.organizationIdFK), (err, data) => {
             if(!err){
                 if(data && data.length > 0){
                     res.status(200).json({
@@ -610,9 +610,9 @@ router.get("/selectUserRole", (req, res, next) => {
  *         description: Bad request
  */
 router.get("/selectUser", (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
-        db.query(User.getUsersList(organizationIdFK), (err, data) => {
+        db.query(User.getUsersList(tokendata.organizationIdFK), (err, data) => {
 
             if(!err){
                 if(data && data.length > 0){

@@ -132,18 +132,18 @@ var uploadDoc = multer({ storage: storage1 })
  */
 
 router.get("/AssetList/:categoryId/:pageNo", (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
         const limit = 10;
         const page = req.params.pageNo;
         var pageCount1 = 0;
         let categoryId = req.params.categoryId;
 
-        db.query(Asset.getAllAssetSQL(organizationIdFK, categoryId), (err1, data1) => {
+        db.query(Asset.getAllAssetSQL(tokendata.organizationIdFK, categoryId), (err1, data1) => {
 
             if (data1) {
                 pageCount1 = data1.length;
 
-                db.query(Asset.getAllAssetSQL(organizationIdFK, categoryId, limit, page), (err, data) => {
+                db.query(Asset.getAllAssetSQL(tokendata.organizationIdFK, categoryId, limit, page), (err, data) => {
                     if (!err) {
                         if (data && data.length > 0) {
                             res.status(200).json({
@@ -207,7 +207,7 @@ router.get("/AssetSearch/", [
     // validation rules start 
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
         // send response of validation to client
         const errors = validationResult(req);
@@ -219,7 +219,7 @@ router.get("/AssetSearch/", [
         let categoryId = req.query.categoryId;
         let keyword = req.query.keyword;
 
-        db.query(Asset.getAllAssetSearchSQL(organizationIdFK, categoryId, keyword), (err, data) => {
+        db.query(Asset.getAllAssetSearchSQL(tokendata.organizationIdFK, categoryId, keyword), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({
@@ -270,7 +270,7 @@ router.get("/AssetSearch/", [
  */
 
 router.get("/assetHistory/:assetIdFK/:pageNo", (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
         const limit = 10;
         const page = req.params.pageNo;
         var pageCount1 = 0;
@@ -340,7 +340,7 @@ router.get("/assetHistory/:assetIdFK/:pageNo", (req, res, next) => {
  */
 
 router.get("/questionAnswer/:doneChecklistIdFK/:pageNo", (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
         const limit = 10;
         const page = req.params.pageNo;
         var pageCount1 = 0;
@@ -405,7 +405,7 @@ router.get("/questionAnswer/:doneChecklistIdFK/:pageNo", (req, res, next) => {
  *         description: Bad request
  */
 router.get("/viewParticularAsset/:assetId", (req, res, next) => {
-    verifyToken(req, res, assetId => {
+    verifyToken(req, res, tokendata => {
         let uid = req.params.assetId;
 
         db.query(Asset.getAssetByIdSQL(uid), (err, data) => {
@@ -516,7 +516,7 @@ router.post("/addAsset", [
         return true;
     })
 ], (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(422).json({ errors: errors.array() });
@@ -524,7 +524,7 @@ router.post("/addAsset", [
         let obj = req.body;
         let assetCode = new Date().getTime()
         obj.assetCode = assetCode;
-        obj.organizationIdFK = organizationIdFK;
+        obj.organizationIdFK = tokendata.organizationIdFK;
         let asset = new Asset(obj);
 
         db.query(asset.addAssetSQL(), (err, data) => {
@@ -683,7 +683,7 @@ router.put("/upadateAsset/:assetId", [
         return true;
     })
 ], (req, res, next) => {
-    verifyToken(req, res, assetId => {
+    verifyToken(req, res, tokendata => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(422).json({ errors: errors.array() });
@@ -760,7 +760,7 @@ router.put("/upadateAsset/:assetId", [
  */
 
 router.put("/deleteAsset/:assetId", (req, res, next) => {
-    verifyToken(req, res, aId => {
+    verifyToken(req, res, tokendata => {
         var aId = req.params.assetId;
 
         db.query(Asset.checkAssetById(aId), (err, data) => {
@@ -820,7 +820,7 @@ router.put("/deleteAsset/:assetId", (req, res, next) => {
  */
 
 router.post('/uploadAssetImage', uploadImage.single('file'), (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
         if (!req.file) {
             res.status(500).json({
                 message: "Please Select an image File",
@@ -861,7 +861,7 @@ router.post('/uploadAssetImage', uploadImage.single('file'), (req, res, next) =>
  *         description: Please Select the File
  */
 router.post('/uploadAssetDoc', uploadDoc.single('file'), (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
         if (!req.file) {
             res.status(500).json({
                 message: "Please Select Document File",
@@ -900,7 +900,7 @@ router.post('/uploadAssetDoc', uploadDoc.single('file'), (req, res, next) => {
  */
 
 router.get("/selectInstallationLocationType", (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
 
         db.query(Asset.getInstallationLocationType(), (err, data) => {
             if (!err) {
@@ -944,7 +944,7 @@ router.get("/selectInstallationLocationType", (req, res, next) => {
  *         description: Bad request
  */
 router.get("/selectDurationType", (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
 
         db.query(Asset.getDurationType(), (err, data) => {
             if (!err) {
@@ -988,9 +988,9 @@ router.get("/selectDurationType", (req, res, next) => {
  *         description: Bad request
  */
 router.get("/selectSupplier", (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
-        db.query(Asset.getSupplier(organizationIdFK), (err, data) => {
+        db.query(Asset.getSupplier(tokendata.organizationIdFK), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
 
@@ -1032,9 +1032,9 @@ router.get("/selectSupplier", (req, res, next) => {
  *         description: Bad request
  */
 router.get("/selectManufacturer", (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
-        db.query(Asset.getManufacturer(organizationIdFK), (err, data) => {
+        db.query(Asset.getManufacturer(tokendata.organizationIdFK), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
 
@@ -1076,9 +1076,9 @@ router.get("/selectManufacturer", (req, res, next) => {
  *         description: Bad request
  */
 router.get("/selectAsset", (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
-        db.query(Asset.getAsset(organizationIdFK), (err, data) => {
+        db.query(Asset.getAsset(tokendata.organizationIdFK), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
 

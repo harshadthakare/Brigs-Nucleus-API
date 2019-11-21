@@ -52,17 +52,17 @@ const router = express.Router();
  */
 router.get("/listOfSuppliers/:pageNo", (req, res, next) => {
 
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
         const limit = 10;
         const page = req.params.pageNo;
         var pageCount1 = 0;
 
-        db.query(Supplier.getAllSuppliersSQL(organizationIdFK), (err1, data1) => {
+        db.query(Supplier.getAllSuppliersSQL(tokendata.organizationIdFK), (err1, data1) => {
             if (data1) {
 
                 pageCount1 = data1.length;
 
-                db.query(Supplier.getAllSuppliersSQL(organizationIdFK, limit, page), (err, data) => {
+                db.query(Supplier.getAllSuppliersSQL(tokendata.organizationIdFK, limit, page), (err, data) => {
                     if (!err) {
                         if (data && data.length > 0) {
                             res.status(200).json({
@@ -118,7 +118,7 @@ router.get("/listOfSuppliers/:pageNo", (req, res, next) => {
  *         description: Bad request
  */
 router.get("/viewParticularSupplier/:supplierId", (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
         let sid = req.params.supplierId;
 
         db.query(Supplier.getSupplierByIdSQL(sid), (err, data) => {
@@ -175,14 +175,14 @@ router.post("/addSupplier", [ // validation rules start
     check('emailId').trim().normalizeEmail().isEmail().withMessage("Enter valid email id"),
 
 ], (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(422).json({ errors: errors.array() });
         }
         let supplier = new Supplier(req.body);
-        supplier.organizationIdFK = organizationIdFK;
+        supplier.organizationIdFK = tokendata.organizationIdFK;
 
         db.query(supplier.addSupplierSQL(), (err, data) => {
             if (!err) {
@@ -199,7 +199,7 @@ router.post("/addSupplier", [ // validation rules start
                     message = 'Something went wrong'
                 }
 
-                res.status(400).json({
+                res.status(200).json({
                     message: message
                 });
             }
@@ -250,7 +250,7 @@ router.put("/updateSupplier/:supplierId", [ // validation rules start
     check('emailId').trim().normalizeEmail().isEmail().withMessage("Enter valid email id"),
 
 ], (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
 
         // send response of validation to client
         const errors = validationResult(req);
@@ -325,7 +325,7 @@ router.put("/updateSupplier/:supplierId", [ // validation rules start
  *         description: Bad request    
  */
 router.put("/deleteSupplier/:supplierId", (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
         var sId = req.params.supplierId;
 
         db.query(Supplier.checkSupplierId(sId), (err, data) => {

@@ -18,7 +18,7 @@ class AssetCategory {
     addAssetCategorySQL() {
 
         let sql = `INSERT into category (parentId, title, organizationIdFK) 
-                    VALUES (if(${this.parentId}=0,(SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE TABLE_SCHEMA = "${DATABASE}" AND TABLE_NAME = "CATEGORY"),
+                    VALUES (if(${this.parentId}=0,(SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE TABLE_SCHEMA = "${DATABASE}" AND TABLE_NAME = "category"),
                     ${this.parentId}), '${this.title}', ${this.organizationIdFK})`;
         return sql;
     }

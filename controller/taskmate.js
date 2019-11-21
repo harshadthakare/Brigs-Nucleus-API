@@ -92,7 +92,7 @@ var uploadImage1 = multer({ storage: storage });
  */
 
 router.get("/taskmateList/:pageNo", (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
         const limit = 10;
         const page = req.params.pageNo;
         var pageCount1 = 0;
@@ -175,7 +175,7 @@ router.get("/taskSearch/",[
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
      
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
         // send response of validation to client
         const errors = validationResult(req);
@@ -233,7 +233,7 @@ router.get("/taskSearch/",[
  */
 
 router.get("/viewParticularTask/:complaintId", (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
         let cid = req.params.complaintId;
 
         db.query(Taskmate.getParticularTaskByIdSQL(cid), (err, data) => {
@@ -286,7 +286,7 @@ router.get("/viewParticularTask/:complaintId", (req, res, next) => {
  */
 
 router.get("/tasksTrackList/:complaintId/:pageNo", (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
         const limit = 10;
         const page = req.params.pageNo;
         var pageCount1 = 0;
@@ -362,7 +362,7 @@ router.get("/taskTrackSearch/",[
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
      
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
         // send response of validation to client
         const errors = validationResult(req);
@@ -434,7 +434,7 @@ router.post("/addTaskmate", [
     }),
     // Indicates the success of this synchronous custom validator
 ], (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
         // send response of validation to client
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -445,7 +445,7 @@ router.post("/addTaskmate", [
         let taskmate = new Taskmate(obj);
         let users = req.body.users;
         let user = new Taskmate(req.body);
-        obj.adminId = adminId;
+        obj.adminId = tokendata.adminId;
 
         db.query(taskmate.addTaskSQL(obj.adminId), (err, data) => {
 
@@ -525,14 +525,14 @@ router.post("/addTaskmate", [
 
 router.put("/deleteTaskmate/:complaintId", (req, res, next) => {
 
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
         var cId = req.params.complaintId;
 
         db.query(Taskmate.deleteResponsiblePersonSQL(cId), (err1, data1) => {
             if (!err1) {
                 db.query(Taskmate.deleteTaskTrackSQL(cId), (err2, data2) => {
 
-                    db.query(Taskmate.deleteTaskSQL(cId), (err3, data3) => {
+                    db.query(Taskmate.deleteComplaintSQL(cId), (err3, data3) => {
                         if (data3 && data3.affectedRows > 0) {
                             res.status(200).json({
                                 message: "Task deleted successfully",
@@ -608,7 +608,7 @@ router.put("/updateTaskStatus/:complaintId", [
     })
     // validation rules end 
 ], (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
 
         // send response of validation to client
         const errors = validationResult(req);
@@ -674,7 +674,7 @@ router.post('/uploadTaskmateImage/:complaintId', [
     // validation rules start 
     check('complaintId').trim().not().isEmpty().withMessage("Please Add Complaint Id")
 ], uploadImage1.single('file'), (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -743,7 +743,7 @@ router.post('/uploadTaskmateImage/:complaintId', [
  */
 
 router.get("/transferComplaintsList/:complaintId/:pageNo", (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
         const limit = 10;
         const page = req.params.pageNo;
         var pageCount1 = 0;
@@ -819,7 +819,7 @@ router.get("/complaintTransferSearch/",[
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
      
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
         // send response of validation to client
         const errors = validationResult(req);
@@ -913,7 +913,7 @@ router.post('/addTransferComplaint/:complaintId', [
     })
     // validation rules end
 ], (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -996,7 +996,7 @@ router.put("/updatTransferStatus/:complaintId", [
     })
     // validation rules end 
 ], (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
 
         // send response of validation to client
         const errors = validationResult(req);
@@ -1057,7 +1057,7 @@ router.put("/updatTransferStatus/:complaintId", [
  */
 
 router.put("/deleteTransferComplaint/:complaintId", (req, res, next) => {
-    verifyToken(req, res, aId => {
+    verifyToken(req, res, tokendata => {
         var cId = req.params.complaintId;
 
         db.query(Complaints.deleteTransferComplaintByIdSQL(cId), (err, data) => {

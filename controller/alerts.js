@@ -33,7 +33,7 @@ const router = express.Router();
  */
 
 router.get("/AlertList/:pageNo", (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
         const limit = 10;
         const page = req.params.pageNo;
         var pageCount1 = 0;
@@ -117,7 +117,7 @@ router.get("/alertSearch/",[
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
      
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
         // send response of validation to client
         const errors = validationResult(req);
@@ -174,7 +174,7 @@ router.get("/alertSearch/",[
  *         description: Bad request
  */
 router.get("/viewParticularAlert/:alertId", (req, res, next) => {
-    verifyToken(req, res, aId => {
+    verifyToken(req, res, tokendata => {
         let aid = req.params.alertId;
 
         db.query(Alerts.getAlertTrackCount(aid), (err1, data1) => {
@@ -245,7 +245,7 @@ router.get("/viewParticularAlert/:alertId", (req, res, next) => {
  *         description: Bad request
  */
 router.get("/viewParticularAlertTrack/:alertId/:pageNo", (req, res, next) => {
-    verifyToken(req, res, aId => {
+    verifyToken(req, res, tokendata => {
         const limit = 10;
         const page = req.params.pageNo;
         var pageCount1 = 0;
@@ -320,7 +320,7 @@ router.get("/alertTrackSearch/",[
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
      
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
         // send response of validation to client
         const errors = validationResult(req);
@@ -380,7 +380,7 @@ router.get("/alertTrackSearch/",[
  */
 
 router.put("/deleteAlert/:alertId", (req, res, next) => {
-    verifyToken(req, res, aId => {
+    verifyToken(req, res, tokendata => {
         var aId = req.params.alertId;
 
         db.query(Alerts.checkAlertById(aId), (err, data) => {

@@ -94,7 +94,7 @@ var uploadImage = multer({ storage: storage });
  */
 
 router.get("/complaintsList/:pageNo", (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
         const limit = 10;
         const page = req.params.pageNo;
         var pageCount1 = 0;
@@ -177,7 +177,7 @@ router.get("/complaintSearch/",[
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
      
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
         // send response of validation to client
         const errors = validationResult(req);
@@ -235,7 +235,7 @@ router.get("/complaintSearch/",[
  */
 
 router.get("/viewParticularComplaint/:complaintId", (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
         let cid = req.params.complaintId;
 
         db.query(Complaints.getParticularComplaintByIdSQL(cid), (err, data) => {
@@ -288,7 +288,7 @@ router.get("/viewParticularComplaint/:complaintId", (req, res, next) => {
  */
 
 router.get("/complaintsTrackList/:complaintId/:pageNo", (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
         const limit = 10;
         const page = req.params.pageNo;
         var pageCount1 = 0;
@@ -364,7 +364,7 @@ router.get("/complaintTrackSearch/",[
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
      
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
         // send response of validation to client
         const errors = validationResult(req);
@@ -443,7 +443,7 @@ router.post("/addComplaint", [
     }),
     // Indicates the success of this synchronous custom validator
 ], (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
         // send response of validation to client
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -454,7 +454,7 @@ router.post("/addComplaint", [
         let complaint = new Complaints(obj);
         let users = req.body.users;
         let user = new Complaints(req.body);
-        obj.adminId = adminId;
+        obj.adminId = tokendata.adminId;
 
         db.query(complaint.addComplaintSQL(obj.adminId), (err, data) => {
 
@@ -534,7 +534,7 @@ router.post("/addComplaint", [
 
 router.put("/deleteComplaint/:complaintId", (req, res, next) => {
 
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
         var cId = req.params.complaintId;
 
         db.query(Complaints.deleteResponsiblePersonSQL(cId), (err1, data1) => {
@@ -617,7 +617,7 @@ router.put("/updateComplaintStatus/:complaintId", [
     })
     // validation rules end 
 ], (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
 
         // send response of validation to client
         const errors = validationResult(req);
@@ -683,7 +683,7 @@ router.post('/uploadComplaintImage/:complaintId', [
     // validation rules start 
     check('complaintId').trim().not().isEmpty().withMessage("Please Add Complaint Id")
 ], uploadImage.single('file'), (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -752,7 +752,7 @@ router.post('/uploadComplaintImage/:complaintId', [
  */
 
 router.get("/transferComplaintsList/:complaintId/:pageNo", (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
         const limit = 10;
         const page = req.params.pageNo;
         var pageCount1 = 0;
@@ -828,7 +828,7 @@ router.get("/complaintTransferSearch/",[
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
      
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
         // send response of validation to client
         const errors = validationResult(req);
@@ -887,7 +887,7 @@ router.get("/complaintTransferSearch/",[
  */
 
 router.get("/selectResponsibleUsers/:complaintId", (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
 
         let cid = req.params.complaintId;
 
@@ -972,7 +972,7 @@ router.post('/addTransferComplaint/:complaintId', [
     })
     // validation rules end
 ], (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -1055,7 +1055,7 @@ router.put("/updatTransferStatus/:complaintId", [
     })
     // validation rules end 
 ], (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
 
         // send response of validation to client
         const errors = validationResult(req);
@@ -1116,7 +1116,7 @@ router.put("/updatTransferStatus/:complaintId", [
  */
 
 router.put("/deleteTransferComplaint/:complaintId", (req, res, next) => {
-    verifyToken(req, res, aId => {
+    verifyToken(req, res, tokendata => {
         var cId = req.params.complaintId;
 
         db.query(Complaints.deleteTransferComplaintByIdSQL(cId), (err, data) => {
@@ -1164,7 +1164,7 @@ router.put("/deleteTransferComplaint/:complaintId", (req, res, next) => {
  */
 
 router.get("/selectTypeofcomplaint", (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
 
         db.query(Complaints.getTypeOfComplaint(), (err, data) => {
             if (!err) {
@@ -1209,9 +1209,9 @@ router.get("/selectTypeofcomplaint", (req, res, next) => {
  */
 
 router.get("/selectAssets", (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
-        db.query(Complaints.getAsset(organizationIdFK), (err, data) => {
+        db.query(Complaints.getAsset(tokendata.organizationIdFK), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({
@@ -1253,7 +1253,7 @@ router.get("/selectAssets", (req, res, next) => {
  */
 
 router.get("/selectComplaintStatus", (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
 
         db.query(Complaints.getComplaintStatus(), (err, data) => {
             if (!err) {
@@ -1297,7 +1297,7 @@ router.get("/selectComplaintStatus", (req, res, next) => {
  */
 
 router.get("/selectTransferStatus", (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
 
         db.query(Complaints.getTransferStatus(), (err, data) => {
             if (!err) {
@@ -1341,9 +1341,9 @@ router.get("/selectTransferStatus", (req, res, next) => {
  */
 
 router.get("/seletListOfUser", (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
-        db.query(Complaints.getUsersList(organizationIdFK), (err, data) => {
+        db.query(Complaints.getUsersList(tokendata.organizationIdFK), (err, data) => {
 
             if (!err) {
                 if (data && data.length > 0) {

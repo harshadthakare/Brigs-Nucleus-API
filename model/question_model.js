@@ -114,7 +114,7 @@ class Question {
 
     static getQuestionOptionByIdSQL(questionId){
         let sql = `SELECT questionOptionId,title as optionTitle,isDanger,referQuestionId,IF(referQuestionId = 0, 0,1) AS hasLinkedQuestion 
-                   FROM questionoption WHERE questionIdFK = ${questionId} AND isDeleted = 0`;
+                   FROM questionoption WHERE questionIdFK = ${questionId} AND isDeleted = 0 ORDER BY questionOptionId DESC`;
         return sql;
     }
 

@@ -43,16 +43,16 @@ const router = express.Router();
  */
 router.get("/listOfManufacturer/:pageNo", (req, res, next) => {
 
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
         const limit = 10;
         const page = req.params.pageNo;
         var pageCount1 = 0;
 
-        db.query(Manufacturer.getAllManufacturersSQL(organizationIdFK), (err1, data1) => {
+        db.query(Manufacturer.getAllManufacturersSQL(tokendata.organizationIdFK), (err1, data1) => {
             if (data1) {
                 pageCount1 = data1.length;
 
-                db.query(Manufacturer.getAllManufacturersSQL(organizationIdFK, limit, page), (err, data) => {
+                db.query(Manufacturer.getAllManufacturersSQL(tokendata.organizationIdFK, limit, page), (err, data) => {
                     if (!err) {
                         if (data && data.length > 0) {
                             res.status(200).json({
@@ -108,7 +108,7 @@ router.get("/listOfManufacturer/:pageNo", (req, res, next) => {
  *         description: Bad request
  */
 router.get("/viewParticularManufacturer/:manufacturerId", (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
         let mid = req.params.manufacturerId;
         console.log(mid);
 
@@ -163,7 +163,7 @@ router.post("/addManufacturer", [ // validation rules start
     check('title').trim().isLength({ min: 3 }).withMessage('must be at least 3 chars long')
 
 ], (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
         const errors = validationResult(req);
         
@@ -172,7 +172,7 @@ router.post("/addManufacturer", [ // validation rules start
         }
 
         let manufacturer = new Manufacturer(req.body);
-        manufacturer.organizationIdFK = organizationIdFK;
+        manufacturer.organizationIdFK = tokendata.organizationIdFK;
 
         db.query(manufacturer.addManufacturerSQL(), (err, data) => {
             if (!err) {
@@ -190,7 +190,7 @@ router.post("/addManufacturer", [ // validation rules start
                     message='Something went wrong'
                 }
 
-                res.status(400).json({
+                res.status(200).json({
                     message: message
                 });
             }
@@ -238,7 +238,7 @@ router.put("/updateManufacturer/:manufacturerId", [ // validation rules start
     check('title').trim().isLength({ min: 3 }).withMessage('must be at least 3 chars long')
 
 ], (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
 
         // send response of validation to client
         const errors = validationResult(req);
@@ -313,7 +313,7 @@ router.put("/updateManufacturer/:manufacturerId", [ // validation rules start
  *         description: Bad request
  */
 router.put("/deleteManufacturer/:manufacturerId", (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
         var mId = req.params.manufacturerId;
 
         db.query(Manufacturer.checkManufacturerId(mId), (err, data) => {

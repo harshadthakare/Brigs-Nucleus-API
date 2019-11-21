@@ -81,7 +81,7 @@ class Taskmate {
         return sql;
     }
 
-    static deleteTaskSQL(complaintId){
+    static deleteComplaintSQL(complaintId){
         let sql = `UPDATE complaint SET isDeleted = 1 WHERE complaintId = ${complaintId}`;
         return sql;
     }

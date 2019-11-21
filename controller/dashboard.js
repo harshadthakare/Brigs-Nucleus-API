@@ -26,18 +26,18 @@ const router = express.Router();
  */
 
 router.get("/home", (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
-        db.query(Dashboard.getAllCounts(organizationIdFK), (err, data) => {
+        db.query(Dashboard.getAllCounts(tokendata.organizationIdFK), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({
                         "dashboard": data,
-                        message: "Total Counts"
+                        message: "Total Counts",
+                        organizationIdFK: tokendata.organizationIdFK
                     });
                 } else {
-                    res.status(200).json({
-                        status: false,
+                    res.status(404).json({
                         message: "Not found"
                     });
                 }

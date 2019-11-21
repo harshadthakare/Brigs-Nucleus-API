@@ -63,9 +63,6 @@ app.use(express.static(assetImageDir));
 var userGuideDir = require('path').join('./uploads/UserGuide');
 app.use(express.static(userGuideDir));
 
-var assetQrDir = require('path').join('./uploads/qrCode');
-app.use(express.static(assetQrDir));
-
 var alertImageDir = require('path').join('./uploads/AlertImage');
 app.use(express.static(alertImageDir));
 

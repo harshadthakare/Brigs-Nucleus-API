@@ -67,7 +67,7 @@ const router = express.Router();
 
 router.get("/listOfAssignedUsersByCategoryId/:categoryId/:pageNo", (req, res, next) => {
 
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
         const limit = 10;
         const page = req.params.pageNo;
         var pageCount1 = 0;
@@ -139,7 +139,7 @@ router.get("/listOfAssignedUsersByCategoryId/:categoryId/:pageNo", (req, res, ne
 
 router.get("/listOfAssignedUsersByAssetId/:assetId/:pageNo", (req, res, next) => {
 
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
         const limit = 10;
         const page = req.params.pageNo;
         var pageCount1 = 0;
@@ -214,7 +214,7 @@ router.get("/userAssignSearchByCategoryId/", [
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
 
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
         // send response of validation to client
         const errors = validationResult(req);
@@ -281,7 +281,7 @@ router.get("/userAssignSearchByAssetId/", [
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
 
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
         // send response of validation to client
         const errors = validationResult(req);
@@ -366,7 +366,7 @@ router.post("/addAssignUser", [
     }),
     // validation rules end 
 ], (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -437,7 +437,7 @@ router.post("/addAssignUser", [
  */
 
 router.put("/deleteAssignedUser/:userCatAssignmentId", (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
         var ucId = req.params.userCatAssignmentId;
 
         db.query(UserAssign.checkAssignUserId(ucId), (err, data) => {
@@ -492,7 +492,7 @@ router.put("/deleteAssignedUser/:userCatAssignmentId", (req, res, next) => {
  *         description: Bad request
  */
 router.get("/selectAssignmentType", (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
         db.query(UserAssign.getAssignmentTypeList(), (err, data) => {
             if (!err) {

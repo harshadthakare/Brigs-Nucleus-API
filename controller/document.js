@@ -89,7 +89,7 @@ var uploadDoc = multer({ storage: storage })
  */
 
 router.get("/listOfDocumentsByAssetId/:assetId/:pageNo", (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
         const limit = 10;
         const page = req.params.pageNo;
         var pageCount1 = 0;
@@ -160,7 +160,7 @@ router.get("/listOfDocumentsByAssetId/:assetId/:pageNo", (req, res, next) => {
  */
 
 router.get("/listOfDocumentsByCategoryId/:categoryId/:pageNo", (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
         const limit = 10;
         const page = req.params.pageNo;
         var pageCount1 = 0;
@@ -227,7 +227,7 @@ router.get("/listOfDocumentsByCategoryId/:categoryId/:pageNo", (req, res, next) 
  */
 
 router.get("/listOfDocuments/:pageNo", (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
         const limit = 10;
         const page = req.params.pageNo;
         var pageCount1 = 0;
@@ -297,7 +297,7 @@ router.get("/documentSearch/",[
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
      
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
         // send response of validation to client
         const errors = validationResult(req);
@@ -363,7 +363,7 @@ router.get("/documentSearchByCategoryId/",[
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
      
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
         // send response of validation to client
         const errors = validationResult(req);
@@ -430,7 +430,7 @@ router.get("/documentSearchByAssetId/",[
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
      
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
         // send response of validation to client
         const errors = validationResult(req);
@@ -489,7 +489,7 @@ router.get("/documentSearchByAssetId/",[
  */
 
 router.get("/viewParticularDocument/:documentId", (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
         let did = req.params.documentId;
 
         db.query(Document.getDocumentByIdSQL(did), (err, data) => {
@@ -559,7 +559,7 @@ router.post("/addDocument", [
     // validation rules end 1
 ], (req, res, next) => {
 
-    verifyToken(req, res, uId => {
+    verifyToken(req, res, tokendata => {
         // send response of validation to client
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -620,7 +620,7 @@ router.post("/addDocumate", [
     // validation rules end 1
 ], (req, res, next) => {
 
-    verifyToken(req, res, uId => {
+    verifyToken(req, res, tokendata => {
         // send response of validation to client
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -701,7 +701,7 @@ router.put("/updateDocument/:documentId", [
     // validation rules end 1
 ],
     (req, res, next) => {
-        verifyToken(req, res, adminId => {
+        verifyToken(req, res, tokendata => {
             // send response of validation to client
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
@@ -781,7 +781,7 @@ router.put("/updateDocumate/:documentId", [
     // validation rules end 1
 ],
     (req, res, next) => {
-        verifyToken(req, res, adminId => {
+        verifyToken(req, res, tokendata => {
             // send response of validation to client
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
@@ -848,7 +848,7 @@ router.put("/updateDocumate/:documentId", [
  */
 
 router.put("/deleteDocument/:documentId", (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
         var dId = req.params.documentId;
 
         db.query(Document.checkDocumentId(dId), (err, data) => {
@@ -905,7 +905,7 @@ router.put("/deleteDocument/:documentId", (req, res, next) => {
  *         description: Please Select the File
  */
 router.post('/uploadCategoryDoc', uploadDoc.single('file'), (req, res, next) => {
-    verifyToken(req, res, adminId => {
+    verifyToken(req, res, tokendata => {
         if (!req.file) {
             res.status(500).json({
                 message: "Please Select Document File",
@@ -943,7 +943,7 @@ router.post('/uploadCategoryDoc', uploadDoc.single('file'), (req, res, next) => 
  *         description: Bad request
  */
 router.get("/selectDocumentType", (req, res, next) => {
-    verifyToken(req, res, organizationIdFK => {
+    verifyToken(req, res, tokendata => {
 
         db.query(Document.getDocumentTypeList(), (err, data) => {
             if(!err){

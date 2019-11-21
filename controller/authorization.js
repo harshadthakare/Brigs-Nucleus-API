@@ -64,10 +64,11 @@ router.post("/login", [
             });
         } else {
             if (data && data.length > 0) {
-                var userId = data[0].adminId;
+             
+                var aId = data[0].adminId;
                 var orgId = data[0].organizationIdFK;
 
-                var token = jwt.sign({ id: userId, orgId }, config.secret, {
+                var token = jwt.sign({ adminId: aId, organizationIdFK: orgId}, config.secret, {
                     expiresIn: 2400000
                 });
 
