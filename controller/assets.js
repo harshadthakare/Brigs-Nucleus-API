@@ -57,17 +57,17 @@ var storage1 = multer.diskStorage({
         else if (file.mimetype === 'application/msword') {
             cb1(null, 'document-' + Date.now() + '.doc');
         }
-        else if(file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'){
-            cb1(null, 'document-'+ Date.now() + '.xlsx')
+        else if (file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+            cb1(null, 'document-' + Date.now() + '.xlsx')
         }
-        else if(file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'){
-            cb1(null, 'document-'+ Date.now() + '.XLSX')
+        else if (file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+            cb1(null, 'document-' + Date.now() + '.XLSX')
         }
-        else if(file.mimetype === 'application/vnd.ms-excel'){
-            cb1(null, 'document-'+ Date.now() + '.xls')
+        else if (file.mimetype === 'application/vnd.ms-excel') {
+            cb1(null, 'document-' + Date.now() + '.xls')
         }
-        else if(file.mimetype === 'application/vnd.ms-excel'){
-            cb1(null, 'document-'+ Date.now() + '.XLS')
+        else if (file.mimetype === 'application/vnd.ms-excel') {
+            cb1(null, 'document-' + Date.now() + '.XLS')
         }
         else {
             return cb1(new Error('Only pdf, doc, docx, xlsx or xls file types are allowed!'))
@@ -474,7 +474,6 @@ router.post("/addAsset", [
     // validation rules start 
     check('assetTitle').trim().not().isEmpty().withMessage("Please Add Asset Title"),
     check('modelNumber').trim().not().isEmpty().withMessage("Please Add Model Number"),
-    check('description').trim().not().isEmpty().withMessage("Please Add Description"),
     check('image').trim().not().isEmpty().withMessage("Please Add Asset Image"),
     check('installationDate').trim().not().isEmpty().withMessage("Please Add Installation Date"),
     check('installationLocationTypeIdFK').trim().custom((value, { req }) => {
@@ -484,7 +483,6 @@ router.post("/addAsset", [
         // Indicates the success of this synchronous custom validator
         return true;
     }),
-    check('installedLocation').trim().isAlpha().withMessage("Only characters are allowed"),
     check('userGuideBook').trim().not().isEmpty().withMessage("Please Add User Guide Book"),
     check('checkingDuration').trim().isInt().isLength({ min: 1 }).withMessage("Should be minimum 1"),
     check('durationTypeIdFK').trim().custom((value, { req }) => {
@@ -641,7 +639,6 @@ router.put("/upadateAsset/:assetId", [
     // validation rules start 
     check('assetTitle').trim().not().isEmpty().withMessage("Please Add Asset Title"),
     check('modelNumber').trim().not().isEmpty().withMessage("Please Add Model Number"),
-    check('description').trim().not().isEmpty().withMessage("Please Add description"),
     check('image').trim().not().isEmpty().withMessage("Please Add Asset Image"),
     check('installationDate').trim().not().isEmpty().withMessage("Please Add Installation Date"),
     check('installationLocationTypeIdFK').trim().custom((value, { req }) => {
@@ -651,7 +648,6 @@ router.put("/upadateAsset/:assetId", [
         // Indicates the success of this synchronous custom validator
         return true;
     }),
-    check('installedLocation').trim().isAlpha().withMessage("Only characters are allowed"),
     check('userGuideBook').trim().not().isEmpty().withMessage("Please Add User Guide Book"),
     check('checkingDuration').trim().isInt().isLength({ min: 1 }).withMessage("Should be minimum 1"),
     check('durationTypeIdFK').trim().custom((value, { req }) => {
@@ -837,13 +833,15 @@ router.put("/deleteAsset/:assetId", (req, res, next) => {
 router.post('/uploadAssetImage', uploadImage.single('file'), (req, res, next) => {
     verifyToken(req, res, tokendata => {
         if (!req.file) {
-            res.status(500).json({
+            res.status(200).json({
                 message: "Please Select an image File",
+                status: false
             })
         }
         else {
             let item = {
-                ImageName: req.file.filename
+                ImageName: req.file.filename,
+                status: true
             }
             res.json(item);
         }
@@ -878,19 +876,20 @@ router.post('/uploadAssetImage', uploadImage.single('file'), (req, res, next) =>
 router.post('/uploadAssetDoc', uploadDoc.single('file'), (req, res, next) => {
     verifyToken(req, res, tokendata => {
         if (!req.file) {
-            res.status(500).json({
+            res.status(200).json({
                 message: "Please Select Document File",
+                status: false
             })
         }
         else {
             let item = {
-                DocumentName: req.file.filename
+                DocumentName: req.file.filename,
+                status: true
             }
             res.json(item);
         }
     })
 });
-
 /**
  * @swagger
  * /assets/selectInstallationLocationType:

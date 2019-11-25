@@ -33,4 +33,4 @@ class Dashboard {
         return sql;
     }
 }
-module.exports = Dashboard;     
+module.exports = Dashboard;

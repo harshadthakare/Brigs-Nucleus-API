@@ -53,19 +53,19 @@ var storage = multer.diskStorage({
         else if (file.mimetype === 'image/PNG') {
             cb1(null, 'image-' + Date.now() + '.PNG');
         }
-        else if(file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'){
-            cb1(null, 'document-'+ Date.now() + '.xlsx')
+        else if (file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+            cb1(null, 'document-' + Date.now() + '.xlsx')
         }
-        else if(file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'){
-            cb1(null, 'document-'+ Date.now() + '.XLSX')
+        else if (file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+            cb1(null, 'document-' + Date.now() + '.XLSX')
         }
-        else if(file.mimetype === 'application/vnd.ms-excel'){
-            cb1(null, 'document-'+ Date.now() + '.xls')
+        else if (file.mimetype === 'application/vnd.ms-excel') {
+            cb1(null, 'document-' + Date.now() + '.xls')
         }
-        else if(file.mimetype === 'application/vnd.ms-excel'){
-            cb1(null, 'document-'+ Date.now() + '.XLS')
+        else if (file.mimetype === 'application/vnd.ms-excel') {
+            cb1(null, 'document-' + Date.now() + '.XLS')
         }
-        else { 
+        else {
             return cb1(new Error('Only pdf, doc, docx, gif, png, jpeg, jpg, xlsx or xls file types are allowed!'))
         }
     }
@@ -952,13 +952,15 @@ router.put("/deleteDocument/:documentId", (req, res, next) => {
 router.post('/uploadCategoryDoc', uploadDoc.single('file'), (req, res, next) => {
     verifyToken(req, res, tokendata => {
         if (!req.file) {
-            res.status(500).json({
+            res.status(200).json({
                 message: "Please Select Document File",
+                status: false
             })
         }
         else {
             let item = {
-                DocumentName: req.file.filename
+                DocumentName: req.file.filename,
+                status: true
             }
             res.json(item);
         }

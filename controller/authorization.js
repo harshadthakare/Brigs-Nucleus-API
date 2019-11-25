@@ -64,7 +64,7 @@ router.post("/login", [
             });
         } else {
             if (data && data.length > 0) {
-             
+                
                 var aId = data[0].adminId;
                 var orgId = data[0].organizationIdFK;
 
@@ -224,10 +224,7 @@ router.post("/sendOtpViaMail", [check('email').trim().normalizeEmail().isEmail()
     let email = req.body.email;
 
     db.query(auth.getUserByIdSQL(email), (err, data) => {
-        console.log(err);
         if (!err) {
-
-            console.log(data.length);
 
             if (data && data.length > 0) {
                 var otp = Math.floor(1000 + Math.random() * 9000);
@@ -237,7 +234,6 @@ router.post("/sendOtpViaMail", [check('email').trim().normalizeEmail().isEmail()
                     }
                     else {
                         db.query(auth.updateOTPByEmailSQL(otp, email), (err, data) => {
-                            console.log(data);
                             if (data.changedRows == 1) {
                                 res.status(200).json({
                                     status: true,
@@ -311,14 +307,14 @@ check('mobileNumber').trim().isInt().isLength({ min: 10, max: 10 }).withMessage(
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(422).json({ errors: errors.array() });
+        return res.status(200).json({ status: false,message: "Invalid format" });
     }
     var otp = req.body.otp;
     var mobile_number = req.body.mobileNumber;
 
     verifyOtp(mobile_number, otp, data => {
         if (data.type == 'error') {
-            res.status(400).send({
+            res.status(200).send({
                 status: false,
                 message: "OTP is not verified"
             });
@@ -374,7 +370,7 @@ check('email').trim().normalizeEmail().isEmail().withMessage("Enter valid email 
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            return res.status(422).json({ errors: errors.array() });
+            return res.status(200).json({ status: false,message: "Invalid format" });
 
         }
         let verify = new auth(req.body);
@@ -386,7 +382,7 @@ check('email').trim().normalizeEmail().isEmail().withMessage("Enter valid email 
                 });
             }
             else {
-                res.status(404).json({
+                res.status(200).json({
                     status: false,
                     message: "OTP is not verified",
                 });
@@ -472,7 +468,7 @@ router.put("/saveNewPassword", [check('newPassword').isLength({ min: 6 }).withMe
                 });
             }
             else {
-                res.status(400).json({
+                res.status(200).json({
                     status: false,
                     message: "Mobile number is not registered."
                 });
@@ -501,7 +497,7 @@ router.put("/saveNewPassword", [check('newPassword').isLength({ min: 6 }).withMe
                 });
             }
             else {
-                res.status(400).json({
+                res.status(200).json({
                     status: false,
                     message: "Email Id is not registered."
                 });
