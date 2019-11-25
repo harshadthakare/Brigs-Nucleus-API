@@ -14,14 +14,59 @@ var storage = multer.diskStorage({
         if (file.mimetype === 'application/pdf') {
             cb1(null, 'document-' + Date.now() + '.pdf');
         }
+        else if (file.mimetype === 'application/pdf') {
+            cb1(null, 'document-' + Date.now() + '.PDF');
+        }
         else if (file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
             cb1(null, 'document-' + Date.now() + '.docx');
+        }
+        else if (file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+            cb1(null, 'document-' + Date.now() + '.DOCX');
         }
         else if (file.mimetype === 'application/msword') {
             cb1(null, 'document-' + Date.now() + '.doc');
         }
-        else {
-            return cb1(new Error('Only pdf, doc or docx file types are allowed!'))
+        else if (file.mimetype === 'application/msword') {
+            cb1(null, 'document-' + Date.now() + '.DOC');
+        }
+        else if (file.mimetype === 'image/gif') {
+            cb1(null, 'image-' + Date.now() + '.gif');
+        }
+        else if (file.mimetype === 'image/gif') {
+            cb1(null, 'image-' + Date.now() + '.GIF');
+        }
+        else if (file.mimetype === 'image/png') {
+            cb1(null, 'image-' + Date.now() + '.png');
+        }
+        else if (file.mimetype === 'image/jpeg') {
+            cb1(null, 'image-' + Date.now() + '.jpeg');
+        }
+        else if (file.mimetype === 'image/jpg') {
+            cb1(null, 'image-' + Date.now() + '.jpg');
+        }
+        else if (file.mimetype === 'image/JPG') {
+            cb1(null, 'image-' + Date.now() + '.JPG');
+        }
+        else if (file.mimetype === 'image/JPEG') {
+            cb1(null, 'image-' + Date.now() + '.JPEG');
+        }
+        else if (file.mimetype === 'image/PNG') {
+            cb1(null, 'image-' + Date.now() + '.PNG');
+        }
+        else if(file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'){
+            cb1(null, 'document-'+ Date.now() + '.xlsx')
+        }
+        else if(file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'){
+            cb1(null, 'document-'+ Date.now() + '.XLSX')
+        }
+        else if(file.mimetype === 'application/vnd.ms-excel'){
+            cb1(null, 'document-'+ Date.now() + '.xls')
+        }
+        else if(file.mimetype === 'application/vnd.ms-excel'){
+            cb1(null, 'document-'+ Date.now() + '.XLS')
+        }
+        else { 
+            return cb1(new Error('Only pdf, doc, docx, gif, png, jpeg, jpg, xlsx or xls file types are allowed!'))
         }
     }
 });
@@ -55,7 +100,7 @@ var uploadDoc = multer({ storage: storage })
  *         type: string
  *      filepath:
  *         type: string
- */ 
+ */
 
 /**
  * @swagger
@@ -236,7 +281,7 @@ router.get("/listOfDocuments/:pageNo", (req, res, next) => {
             if (data1) {
                 pageCount1 = data1.length;
 
-                db.query(Document.getAllDocuments( limit, page), (err, data) => {
+                db.query(Document.getAllDocuments(limit, page), (err, data) => {
                     if (!err) {
                         if (data && data.length > 0) {
                             res.status(200).json({
@@ -292,11 +337,11 @@ router.get("/listOfDocuments/:pageNo", (req, res, next) => {
  *         description: Bad request
  */
 
-router.get("/documentSearch/",[
+router.get("/documentSearch/", [
     // validation rules start 
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
-     
+
     verifyToken(req, res, tokendata => {
 
         // send response of validation to client
@@ -313,7 +358,7 @@ router.get("/documentSearch/",[
                 if (data && data.length > 0) {
                     res.status(200).json({
                         status: true,
-                        data:data,
+                        data: data,
                         message: "Document Found"
                     });
                 } else {
@@ -358,11 +403,11 @@ router.get("/documentSearch/",[
  *         description: Bad request
  */
 
-router.get("/documentSearchByCategoryId/",[
+router.get("/documentSearchByCategoryId/", [
     // validation rules start 
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
-     
+
     verifyToken(req, res, tokendata => {
 
         // send response of validation to client
@@ -375,12 +420,12 @@ router.get("/documentSearchByCategoryId/",[
         let categoryId = req.query.categoryId;
         let keyword = req.query.keyword;
 
-        db.query(Document.getAllDocumentSearchByCategory(categoryId,keyword), (err, data) => {
+        db.query(Document.getAllDocumentSearchByCategory(categoryId, keyword), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({
                         status: true,
-                        data:data,
+                        data: data,
                         message: "Document Found"
                     });
                 } else {
@@ -425,11 +470,11 @@ router.get("/documentSearchByCategoryId/",[
  *         description: Bad request
  */
 
-router.get("/documentSearchByAssetId/",[
+router.get("/documentSearchByAssetId/", [
     // validation rules start 
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
-     
+
     verifyToken(req, res, tokendata => {
 
         // send response of validation to client
@@ -442,12 +487,12 @@ router.get("/documentSearchByAssetId/",[
         let assetId = req.query.assetId;
         let keyword = req.query.keyword;
 
-        db.query(Document.getAllDocumentSearchByAsset(assetId,keyword), (err, data) => {
+        db.query(Document.getAllDocumentSearchByAsset(assetId, keyword), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({
                         status: true,
-                        data:data,
+                        data: data,
                         message: "Document Found"
                     });
                 } else {
@@ -567,9 +612,9 @@ router.post("/addDocument", [
         }
         // ....!  end send response of validation to client
         let document = new Document(req.body);
-        
+
         db.query(document.addDocumentSQL(), (err, data) => {
-            
+
             if (!err) {
                 res.status(200).json({
                     message: "Document added successfully",
@@ -628,9 +673,9 @@ router.post("/addDocumate", [
         }
         // ....!  end send response of validation to client
         let document = new Document(req.body);
-        
+
         db.query(document.addDocumateSQL(), (err, data) => {
-            
+
             if (!err) {
                 res.status(200).json({
                     message: "Document added successfully",
@@ -911,7 +956,7 @@ router.post('/uploadCategoryDoc', uploadDoc.single('file'), (req, res, next) => 
                 message: "Please Select Document File",
             })
         }
-        else{
+        else {
             let item = {
                 DocumentName: req.file.filename
             }
@@ -946,16 +991,16 @@ router.get("/selectDocumentType", (req, res, next) => {
     verifyToken(req, res, tokendata => {
 
         db.query(Document.getDocumentTypeList(), (err, data) => {
-            if(!err){
-                if(data && data.length > 0){
+            if (!err) {
+                if (data && data.length > 0) {
                     res.status(200).json({
                         documentType: data,
                         message: "Document Type List Found"
                     });
                 }
-                else{
+                else {
                     res.status(400).json({
-                        message:"Document Type List Not Found"
+                        message: "Document Type List Not Found"
                     });
                 }
             }

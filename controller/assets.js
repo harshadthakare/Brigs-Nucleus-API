@@ -14,8 +14,14 @@ var storage = multer.diskStorage({
         if (file.mimetype === 'image/gif') {
             cb(null, 'image-' + Date.now() + '.gif');
         }
+        else if (file.mimetype === 'image/gif') {
+            cb(null, 'image-' + Date.now() + '.GIF');
+        }
         else if (file.mimetype === 'image/png') {
             cb(null, 'image-' + Date.now() + '.png');
+        }
+        else if (file.mimetype === 'image/PNG') {
+            cb(null, 'image-' + Date.now() + '.PNG');
         }
         else if (file.mimetype === 'image/jpeg') {
             cb(null, 'image-' + Date.now() + '.jpeg');
@@ -28,9 +34,6 @@ var storage = multer.diskStorage({
         }
         else if (file.mimetype === 'image/JPEG') {
             cb(null, 'image-' + Date.now() + '.JPEG');
-        }
-        else if (file.mimetype === 'image/PNG') {
-            cb(null, 'image-' + Date.now() + '.PNG');
         }
         else {
             return cb(new Error('Only png, jpeg, gif and jpg file types are allowed!'))
@@ -54,8 +57,20 @@ var storage1 = multer.diskStorage({
         else if (file.mimetype === 'application/msword') {
             cb1(null, 'document-' + Date.now() + '.doc');
         }
+        else if(file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'){
+            cb1(null, 'document-'+ Date.now() + '.xlsx')
+        }
+        else if(file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'){
+            cb1(null, 'document-'+ Date.now() + '.XLSX')
+        }
+        else if(file.mimetype === 'application/vnd.ms-excel'){
+            cb1(null, 'document-'+ Date.now() + '.xls')
+        }
+        else if(file.mimetype === 'application/vnd.ms-excel'){
+            cb1(null, 'document-'+ Date.now() + '.XLS')
+        }
         else {
-            return cb1(new Error('Only pdf, doc or docx file types are allowed!'))
+            return cb1(new Error('Only pdf, doc, docx, xlsx or xls file types are allowed!'))
         }
     }
 });

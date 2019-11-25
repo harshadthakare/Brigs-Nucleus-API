@@ -75,7 +75,7 @@ router.get("/getMaintenanceNotDoneAssets/:pageNo", (req, res, next) => {
     verifyToken(req, res, tokendata => {
         const limit = 10;
         const page = req.params.pageNo;
-        var pageCount1 = 0;
+        var pageCount = 0;
         db.query(Dashboard.getMaintenanceNotDoneAssetCount(tokendata.organizationIdFK), (err2, data2) => {
      
             let totalMaintenceRemainingAssets = data2[0].totalMaintenceRemainingAssets;
@@ -84,13 +84,13 @@ router.get("/getMaintenanceNotDoneAssets/:pageNo", (req, res, next) => {
                 db.query(Dashboard.getAllNotDoneMaintenceAssets(tokendata.organizationIdFK), (err1, data1) => {
                     if (data1) {
 
-                        pageCount1 = data1.length;
+                        pageCount = data1.length;
                         db.query(Dashboard.getAllNotDoneMaintenceAssets(tokendata.organizationIdFK, limit, page), (err, data) => {
                             if (!err) {
                                 if (data && data.length > 0) {
                                     res.status(200).json({
                                         "currentPage": page,
-                                        "totalCount": pageCount1,
+                                        "totalCount": pageCount,
                                         "totalMaintenceRemainingAssets":totalMaintenceRemainingAssets,
                                         "dashboard": data,
                                         message: "List of Assets Whose Maintainece not done"
@@ -98,7 +98,7 @@ router.get("/getMaintenanceNotDoneAssets/:pageNo", (req, res, next) => {
                                 } else {
                                     res.status(200).json({
                                         "currentPage": page,
-                                        "totalCount": pageCount1,
+                                        "totalCount": pageCount,
                                         "dashboard": [],
                                         message: "Not found"
                                     });

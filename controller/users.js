@@ -15,6 +15,9 @@ var storage = multer.diskStorage({
         if (file.mimetype === 'image/gif') {
             cb(null, 'image-' + Date.now() + '.gif');
         }
+        else if (file.mimetype === 'image/gif') {
+            cb(null, 'image-' + Date.now() + '.GIF');
+        }
         else if (file.mimetype === 'image/png') {
             cb(null, 'image-' + Date.now() + '.png');
         }
