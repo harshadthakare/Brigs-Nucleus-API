@@ -10,7 +10,7 @@ class Asset {
 
         let limitString = (limit>0) ? `LIMIT ${startLimit}, ${limit}`: '';
 
-        let sql = `SELECT a.assetId,a.assetTitle,c.title as categoryName,a.assetCode,a.modelNumber,
+        let sql = `SELECT a.assetId,a.assetTitle,c.title as categoryName,a.assetCode,a.modelNumber,a.companyAssetNo,
                    CONCAT('${BASE_URL}','',a.image) as assetImage,o.organizationName from asset a
                    LEFT JOIN installationlocationtype i on a.installationLocationTypeIdFK = i.installationLocationTypeId
                    LEFT JOIN durationtype d ON a.durationTypeIdFK = d.durationTypeId
@@ -27,7 +27,7 @@ class Asset {
 
     static getAllAssetSearchSQL(organizationIdFK,categoryId,keyword) {
     
-        let sql = `SELECT a.assetId,a.assetTitle,c.title as categoryName,a.assetCode,a.modelNumber,
+        let sql = `SELECT a.assetId,a.assetTitle,c.title as categoryName,a.assetCode,a.modelNumber,a.companyAssetNo,
                    CONCAT('${BASE_URL}','',a.image) as assetImage,o.organizationName from asset a
                    LEFT JOIN installationlocationtype i on a.installationLocationTypeIdFK = i.installationLocationTypeId
                    LEFT JOIN durationtype d ON a.durationTypeIdFK = d.durationTypeId
@@ -67,7 +67,7 @@ class Asset {
     }
 
     static getAssetByIdSQL(assetId) {
-        let sql = `SELECT a.assetId,a.assetTitle,a2.categoryIdFK,c.title as categoryName,a.assetCode,a.modelNumber,
+        let sql = `SELECT a.assetId,a.assetTitle,a2.categoryIdFK,c.title as categoryName,a.assetCode,a.modelNumber,a.companyAssetNo,
                    a.description,CONCAT('${BASE_URL}','',a.image) as image,DATE_FORMAT(a.installationDate,'%d %M %Y') as installationDate,a.installedLocation,
                    i.title as installedAt,a.installationLocationTypeIdFK,CONCAT('${BASE_URL}',a.userGuideBook) as userGuideBook,a.checkingDuration,d.title as durationTitle,
                    a.durationTypeIdFK,a.warrenty,d.title as warrentyPeriod,a.warrantyDurationTypeIdFK,o.organizationName,d1.departmentTitle,a.departmentIdFK,
@@ -92,6 +92,7 @@ class Asset {
         let sql = `INSERT INTO asset
            (assetTitle,
             modelNumber,
+            companyAssetNo,
             description,
             image,
             installationDate,
@@ -108,6 +109,7 @@ class Asset {
             organizationIdFK)
             VALUES('${this.assetTitle}',
                    '${this.modelNumber}',
+                   '${this.companyAssetNo}',
                    '${this.description}',
                    '${this.image}',
                    '${this.installationDate}',
@@ -136,7 +138,8 @@ class Asset {
     updateAssetByIdSQL(assetId) {
         let sql = `UPDATE asset SET  
             assetTitle                   = '${this.assetTitle}',
-            modelNumber                  = '${this.modelNumber}',
+            modelNumber                  = '${this.modelNumber}',          
+            companyAssetNo               = '${this.companyAssetNo}',
             description                  = '${this.description}',
             image                        = '${this.image}',
             installationDate             = '${this.installationDate}',

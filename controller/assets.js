@@ -181,7 +181,8 @@ router.get("/AssetList/:categoryId/:pageNo", (req, res, next) => {
                 });
             }
             else {
-                res.status(400).json({
+                res.status(200).json({
+                    status: false,
                     message: "Something went wrong...!!"
                 });
             }
@@ -434,7 +435,7 @@ router.get("/viewParticularAsset/:assetId", (req, res, next) => {
                         message: "Asset found",
                     });
                 } else {
-                    res.status(404).json({
+                    res.status(200).json({
                         message: "Asset Not found"
                     });
                 }
@@ -549,13 +550,15 @@ router.post("/addAsset", [
 
                 db.query(asset.addAssetCatRelation(assetID, obj.categoryIdFK), (err, data) => {
                     res.status(200).json({
+                        status: true,
                         message: "Asset added successfully",
                         Id: assetID
                     });
                 })
             }
-            else {  
-                res.status(400).json({
+            else {
+                res.status(200).json({
+                    status: false,
                     message: "Something went wrong, Please try again"
                 });
             }
@@ -715,20 +718,23 @@ router.put("/upadateAsset/:assetId", [
                                 if (!err) {
                                     if (data && data.affectedRows > 0) {
                                         res.status(200).json({
+                                            status: true,
                                             message: "Asset updated successfully",
                                             affectedRows: data.affectedRows
                                         });
                                     }
                                 }
                                 else {
-                                    res.status(400).json({
+                                    res.status(200).json({
+                                        status: false,
                                         message: "Something went wrong, Please try again"
                                     });
                                 }
                             })
                         }
                         else {
-                            res.status(400).json({
+                            res.status(200).json({
+                                status: false,
                                 message: "Something went wrong, Please try again"
                             });
                         }
@@ -738,7 +744,8 @@ router.put("/upadateAsset/:assetId", [
                 });
             }
             else {
-                res.status(404).json({
+                res.status(200).json({
+                    status:false,
                     message: "Asset ID is not available"
                 });
             }
