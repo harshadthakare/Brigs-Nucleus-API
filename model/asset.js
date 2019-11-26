@@ -159,8 +159,7 @@ class Asset {
         return sql;
     }
 
-    updateAssetCatRelation(assetId,categoryId)
-    {
+    updateAssetCatRelation(assetId,categoryId){
         let sql = `UPDATE assetcatrelation SET categoryIdFK = '${categoryId}' WHERE assetIdFK = ${assetId}`
         return sql;
     }
