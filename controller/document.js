@@ -933,7 +933,7 @@ router.put("/deleteDocument/:documentId", (req, res, next) => {
  *     description: Upload Category Document with pdf format 
  *     produces:
  *       - application/json
- *     summary: Uploads a pdf file.
+ *     summary: Uploads a gif, jpg, jpeg, pdf, doc, docx, xlsx and xls file formats. 
  *     consumes:
  *       - multipart/form-data
  *     parameters:

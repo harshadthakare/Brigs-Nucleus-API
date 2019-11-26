@@ -8,11 +8,14 @@ const router = express.Router();
 var multer = require('multer');
 var storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, './uploads/complaintImage');
+        cb(null, '../allUploads/complaintImages');
     },
     filename: (req, file, cb) => {
         if (file.mimetype === 'image/gif') {
             cb(null, 'image-' + Date.now() + '.gif');
+        }
+        if (file.mimetype === 'image/gif') {
+            cb(null, 'image-' + Date.now() + '.GIF');
         }
         else if (file.mimetype === 'image/png') {
             cb(null, 'image-' + Date.now() + '.png');
@@ -691,13 +694,15 @@ router.post('/uploadComplaintImage/:complaintId', [
         }
 
         if (!req.file) {
-            res.status(500).json({
+            res.status(200).json({
                 message: "Please Select an image File",
+                status: false
             })
         }
         else {
             let item = {
-                ImageName: req.file.filename
+                ImageName: req.file.filename,
+                status: true
             }
             var complaintId = req.params.complaintId;
             var complaintImage = req.file.filename;
