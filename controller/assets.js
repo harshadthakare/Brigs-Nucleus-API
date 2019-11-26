@@ -85,6 +85,8 @@ var uploadDoc = multer({ storage: storage1 })
  *           type: string
  *       modelNumber:
  *           type: string
+ *       companyAssetNo:
+ *           type: string
  *       description:
  *           type: string
  *       image:                      
@@ -552,7 +554,7 @@ router.post("/addAsset", [
                     });
                 })
             }
-            else {
+            else {  
                 res.status(400).json({
                     message: "Something went wrong, Please try again"
                 });
@@ -569,6 +571,8 @@ router.post("/addAsset", [
  *       assetTitle:
  *           type: string
  *       modelNumber:
+ *           type: string
+ *       companyAssetNo:
  *           type: string
  *       description:
  *           type: string
@@ -857,7 +861,7 @@ router.post('/uploadAssetImage', uploadImage.single('file'), (req, res, next) =>
  *     description: Upload User guide book with pdf format 
  *     produces:
  *       - application/json
- *     summary: Uploads a pdf file.
+ *     summary: Uploads a pdf,doc,docx,xlsx and xls file.
  *     consumes:
  *       - multipart/form-data
  *     parameters:
