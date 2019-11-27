@@ -124,6 +124,12 @@ class Question {
         WHERE q.questionId = ${questionId} AND q.isDeleted = 0`;
         return sql;
     }
-
+    static getChecklistQuesWithoutPaginationSQL(checkListId){
+       let sql = `SELECT c.checklistId,q.questionId,qt.title as questionType,q.title as questionDescription 
+                FROM question q JOIN questiontype qt on q.questionTypeIdFK = qt.questionTypeId
+                JOIN checklist c on q.checkListIdFK = c.checklistId
+                WHERE c.checklistId = ${checkListId} AND q.isDeleted = 0  ORDER BY q.createdOn DESC`;
+       return sql;
+    }
 }
 module.exports = Question;

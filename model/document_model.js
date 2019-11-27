@@ -10,7 +10,7 @@ class Document {
 
         let limitString = (limit>0) ? `LIMIT ${startLimit}, ${limit}`: '';    
         
-        let sql = `SELECT d.documentId,d.title,d.description,CONCAT('${BASE_URL}','',d.filepath) as filepath,d.documentTypeIdFK,d.masterId 
+        let sql = `SELECT d.documentId,d.documentCode,d.title,d.description,CONCAT('${BASE_URL}','',d.filepath) as filepath,d.documentTypeIdFK,d.masterId 
                    FROM document d JOIN asset a ON d.masterId = a.assetId WHERE a.assetId = ${assetId} AND d.documentTypeIdFK = 2 AND d.isDeleted = 0
                    ORDER BY d.createdOn DESC ${limitString}`           
         return sql;       
@@ -21,7 +21,7 @@ class Document {
 
         let limitString = (limit>0) ? `LIMIT ${startLimit}, ${limit}`: '';    
         
-        let sql = `SELECT d.documentId,d.title,d.description,CONCAT('${BASE_URL}','',d.filepath) as filepath,d.documentTypeIdFK,d.masterId 
+        let sql = `SELECT d.documentId,d.documentCode,d.title,d.description,CONCAT('${BASE_URL}','',d.filepath) as filepath,d.documentTypeIdFK,d.masterId 
                    FROM document d JOIN category c ON d.masterId = c.categoryId WHERE c.categoryId = ${categoryId} AND d.documentTypeIdFK = 1 AND d.isDeleted = 0
                    ORDER BY d.createdOn DESC ${limitString}`           
         return sql;       
@@ -32,20 +32,20 @@ class Document {
 
         let limitString = (limit>0) ? `LIMIT ${startLimit}, ${limit}`: '';    
         
-        let sql = `SELECT d.documentId,d.title,d.description,CONCAT('${BASE_URL}','',d.filepath) as filepath,d.documentTypeIdFK,d1.title as documentType 
+        let sql = `SELECT d.documentId,d.documentCode,d.title,d.description,CONCAT('${BASE_URL}','',d.filepath) as filepath,d.documentTypeIdFK,d1.title as documentType 
                    FROM document d JOIN documenttype d1 ON d.documentTypeIdFK = d1.documentTypeId WHERE d.isDeleted = 0
                    ORDER BY d.createdOn DESC ${limitString}`           
         return sql;       
     }
 
     static getAllDocumentSearchSQL(keyword) {
-        let sql = `SELECT documentId,title,description FROM document WHERE title LIKE '%${keyword}%' AND isDeleted = 0`;           
+        let sql = `SELECT documentId,documentCode,title,description FROM document WHERE title LIKE '%${keyword}%' AND isDeleted = 0`;           
         return sql;       
     }
 
     static getAllDocumentSearchByCategory(categoryId,keyword) {
 
-        let sql = `SELECT d.documentId,d.title,d.description 
+        let sql = `SELECT d.documentId,d.documentCode,d.title,d.description 
                    FROM document d JOIN category c ON d.masterId = c.categoryId 
                    WHERE c.categoryId = ${categoryId} AND d.documentTypeIdFK = 1 AND d.title LIKE '%${keyword}%' AND d.isDeleted = 0`           
         return sql;       
@@ -53,25 +53,27 @@ class Document {
 
     static getAllDocumentSearchByAsset(assetId,keyword) {
 
-        let sql = `SELECT d.documentId,d.title,d.description 
+        let sql = `SELECT d.documentId,d.documentCode,d.title,d.description 
                    FROM document d JOIN asset a ON d.masterId = a.assetId 
                    WHERE a.assetId = ${assetId} AND d.documentTypeIdFK = 2 AND d.title LIKE '%${keyword}%' AND d.isDeleted = 0`           
         return sql;       
     }
     
     static getDocumentByIdSQL(documentId) {
-        let sql = `SELECT d.documentId,d.title,d.description,CONCAT('${BASE_URL}','',d.filepath) as categoryDoc,dt.title as documentType FROM document d 
+        let sql = `SELECT d.documentId,d.documentCode,d.title,d.description,CONCAT('${BASE_URL}','',d.filepath) as categoryDoc,dt.title as documentType FROM document d 
                    JOIN documenttype dt ON d.documentTypeIdFK = dt.documentTypeId WHERE d.isDeleted = 0 AND d.documentId = ${documentId}`           
         return sql;           
     }
     
     addDocumentSQL() {
-            let sql = `INSERT INTO document(title,
+            let sql = `INSERT INTO document(documentCode,
+            title,
             description,
             filepath,
             documentTypeIdFK,
             masterId)
-            VALUES('${this.title}',
+            VALUES('${this.documentCode}',
+                    '${this.title}',
                     '${this.description}',
                     '${this.filepath}',
                     ${this.documentTypeIdFK},
@@ -80,12 +82,14 @@ class Document {
     } 
 
     addDocumateSQL() {
-        let sql = `INSERT INTO document(title,
+        let sql = `INSERT INTO document(documentCode,
+        title,
         description,
         filepath,
         documentTypeIdFK,
         masterId)
-        VALUES('${this.title}',
+        VALUES('${this.documentCode}',
+                '${this.title}',
                 '${this.description}',
                 '${this.filepath}',
                 3,

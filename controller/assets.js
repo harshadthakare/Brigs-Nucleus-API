@@ -745,7 +745,7 @@ router.put("/upadateAsset/:assetId", [
             }
             else {
                 res.status(200).json({
-                    status:false,
+                    status: false,
                     message: "Asset ID is not available"
                 });
             }
@@ -1121,4 +1121,55 @@ router.get("/selectAsset", (req, res, next) => {
         });
     });
 });
+
+/**
+ * @swagger
+ * /assets/assetQrCodeDetailsList/{categoryId}:
+ *   get:
+ *     tags:
+ *       - Asset 
+ *     description: Returns List of Assets QR Code Details
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: categoryId
+ *         description: "Category Id starts with 1"
+ *         in: path
+ *         required: true
+ *       - name: Authorization
+ *         description: token
+ *         in: header
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK
+ *       404:
+ *         description: Not found
+ *       400:
+ *         description: Bad request
+ */
+router.get("/assetQrCodeDetailsList/:categoryId", (req, res, next) => {
+    verifyToken(req, res, tokendata => {
+        
+        let categoryId = req.params.categoryId;
+        
+        db.query(Asset.getAssetCodeDetailsByCategory(tokendata.organizationIdFK, categoryId), (err, data) => {
+            if (!err) {
+                if (data && data.length > 0) {
+                    res.status(200).json({
+                        status: true,
+                        data: data,
+                        message: "Asset QrCode List found"
+                    });
+                } else {
+                    res.status(200).json({
+                        status: false,
+                        message: "No record found"
+                    });
+                }
+            }
+        });
+    })
+});
+
 module.exports = router;

@@ -367,6 +367,8 @@ router.get("/documentSearch/", [
                         message: "No record found"
                     });
                 }
+            } else {
+                console.log(err.message);
             }
         });
     })
@@ -605,16 +607,20 @@ router.post("/addDocument", [
 ], (req, res, next) => {
 
     verifyToken(req, res, tokendata => {
-        // send response of validation to client
+        // send response of validation to client    
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(422).json({ errors: errors.array() });
         }
         // ....!  end send response of validation to client
-        let document = new Document(req.body);
+          
+        let obj = req.body;
+        let documentCode = new Date().getTime()
+        obj.documentCode = documentCode;      
+        let document = new Document(obj);
 
         db.query(document.addDocumentSQL(), (err, data) => {
-
+            
             if (!err) {
                 res.status(200).json({
                     message: "Document added successfully",
@@ -657,7 +663,6 @@ router.post("/addDocument", [
  *         schema:
  *           $ref: '#/definitions/Documate'
  */
-
 router.post("/addDocumate", [
     // validation rules start 
     check('title').trim().isLength({ min: 3 }).withMessage('must be at least 3 chars long'),
@@ -672,7 +677,10 @@ router.post("/addDocumate", [
             return res.status(422).json({ errors: errors.array() });
         }
         // ....!  end send response of validation to client
-        let document = new Document(req.body);
+        let obj = req.body;
+        let documentCode = new Date().getTime()
+        obj.documentCode = documentCode;      
+        let document = new Document(obj);
 
         db.query(document.addDocumateSQL(), (err, data) => {
 
@@ -689,6 +697,8 @@ router.post("/addDocumate", [
         });
     })
 });
+
+
 
 /**
  * @swagger
@@ -783,6 +793,7 @@ router.put("/updateDocument/:documentId", [
             });
         })
     });
+
 
 /**
  * @swagger

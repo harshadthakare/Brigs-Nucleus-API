@@ -198,5 +198,14 @@ class Asset {
         let sql = `SELECT assetId,assetTitle from asset WHERE organizationIdFK = ${organizationIdFK} AND isDeleted = 0`;
         return sql;
     }
-}
+    static getAssetCodeDetailsByCategory(organizationIdFK,categoryId){
+        
+        let sql = `SELECT a.assetId,a.assetTitle,a.assetCode,a.modelNumber FROM asset a
+        LEFT JOIN assetcatrelation a2 ON a2.assetIdFK = a.assetId
+        LEFT JOIN category c on a2.categoryIdFK = c.categoryId
+        WHERE a.organizationIdFK =${organizationIdFK} AND a2.categoryIdFK =${categoryId} AND a.isDeleted = 0 ORDER BY a.createdOn DESC`;    
+        return sql;
+    }
+}   
+
 module.exports = Asset;

@@ -938,5 +938,54 @@ router.get("/selectQuestionType", (req, res, next) => {
         });
     });
 });
+/**
+ * @swagger
+ * /questions/checklistQuestionsWithoutPagination/{checklistId}:
+ *   get:
+ *     tags:
+ *       - Question
+ *     description: Returns list of all questions by checklist id Without using pagination
+ *     produces:    
+ *       - application/json
+ *     parameters:
+ *       - name: checklistId
+ *         description: "enter checklist Id"
+ *         in: path
+ *         required: true
+ *       - name: Authorization
+ *         description: token
+ *         in: header
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK
+ *       404:
+ *         description: Not found
+ *       400:
+ *         description: Bad request
+ */
 
+router.get("/checklistQuestionsWithoutPagination/:checklistId", (req, res, next) => {
+    verifyToken(req, res, tokendata => {
+
+        let checklistId = req.params.checklistId;
+        
+        db.query(Question.getChecklistQuesWithoutPaginationSQL(checklistId), (err, data) => {
+            if (!err) {
+                if (data && data.length > 0) {
+                    res.status(200).json({
+                        status: true,
+                        question: data,
+                        message: "Questions List found",
+                    });
+                } else {
+                    res.status(200).json({
+                        status: false,
+                        message: "No record found"
+                    });
+                }
+            }
+        });
+    })
+});
 module.exports = router;
