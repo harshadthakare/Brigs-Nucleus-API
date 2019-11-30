@@ -543,8 +543,8 @@ router.post("/addAsset", [
         obj.organizationIdFK = tokendata.organizationIdFK;
         let asset = new Asset(obj);
 
-        db.query(asset.addAssetSQL(), (err, data) => {
-
+        db.query(asset.addAssetSQL(organizationIdFK), (err, data) => {
+            
             if (!err) {
                 let assetID = data.insertId
 

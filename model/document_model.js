@@ -71,7 +71,7 @@ class Document {
             description,
             filepath,
             documentTypeIdFK,
-            masterId)
+            masterId)   
             VALUES('${this.documentCode}',
                     '${this.title}',
                     '${this.description}',

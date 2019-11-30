@@ -87,7 +87,7 @@ class Asset {
         return sql;
     }
 
-    addAssetSQL() {
+    addAssetSQL(organizationIdFK) {
 
         let sql = `INSERT INTO asset
            (assetTitle,
@@ -118,7 +118,8 @@ class Asset {
                    '${this.userGuideBook}',
                     ${this.checkingDuration},
                     ${this.durationTypeIdFK},
-                   '${this.assetCode}',
+                    CONCAT((SELECT SUBSTRING(UCASE(organizationName),1,4) as prefix FROM organization
+                    WHERE organizationId = ${organizationIdFK}),'${this.assetCode}'),
                     ${this.warrenty},
                     ${this.warrantyDurationTypeIdFK},
                     ${this.supplierIdFK},
