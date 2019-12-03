@@ -1,14 +1,14 @@
-const {BASE_URL} = require("../config/constants");
+const { BASE_URL } = require("../config/constants");
 class Asset {
 
     constructor(obj) {
         obj && Object.assign(this, obj)
     }
 
-    static getAllAssetSQL(organizationIdFK,categoryId,limit=0, start=0) {
-        let startLimit = limit*start;
+    static getAllAssetSQL(organizationIdFK, categoryId, limit = 0, start = 0) {
+        let startLimit = limit * start;
 
-        let limitString = (limit>0) ? `LIMIT ${startLimit}, ${limit}`: '';
+        let limitString = (limit > 0) ? `LIMIT ${startLimit}, ${limit}` : '';
 
         let sql = `SELECT a.assetId,a.assetTitle,c.title as categoryName,a.assetCode,a.modelNumber,a.companyAssetNo,
                    CONCAT('${BASE_URL}','',a.image) as assetImage,o.organizationName from asset a
@@ -25,8 +25,8 @@ class Asset {
         return sql;
     }
 
-    static getAllAssetSearchSQL(organizationIdFK,categoryId,keyword) {
-    
+    static getAllAssetSearchSQL(organizationIdFK, categoryId, keyword) {
+
         let sql = `SELECT a.assetId,a.assetTitle,c.title as categoryName,a.assetCode,a.modelNumber,a.companyAssetNo,
                    CONCAT('${BASE_URL}','',a.image) as assetImage,o.organizationName from asset a
                    LEFT JOIN installationlocationtype i on a.installationLocationTypeIdFK = i.installationLocationTypeId
@@ -41,11 +41,11 @@ class Asset {
         return sql;
     }
 
-    static getAssetHistorySQL(assetIdFK, limit=0, start=0) {
-        let startLimit = limit*start;
+    static getAssetHistorySQL(assetIdFK, limit = 0, start = 0) {
+        let startLimit = limit * start;
 
-        let limitString = (limit>0) ? `LIMIT ${startLimit}, ${limit}`: '';
-    
+        let limitString = (limit > 0) ? `LIMIT ${startLimit}, ${limit}` : '';
+
         let sql = `SELECT d.doneChecklistId,c.title as checkListTitle,CONCAT(u.firstName, ' ' ,u.lastName)as doneBy,DATE_FORMAT(d.doneOn, '%d %M %Y')as doneOn,d.assetIdFK 
                    from donechecklist d JOIN checklist c on d.checkListIdFK = c.checklistId 
                    JOIN user u on d.doneBy = u.userId 
@@ -54,11 +54,11 @@ class Asset {
         return sql;
     }
 
-    static getQuestionAnswerSQL(doneChecklistIdFK, limit=0, start=0) {
-        let startLimit = limit*start;
+    static getQuestionAnswerSQL(doneChecklistIdFK, limit = 0, start = 0) {
+        let startLimit = limit * start;
 
-        let limitString = (limit>0) ? `LIMIT ${startLimit}, ${limit}`: '';
-    
+        let limitString = (limit > 0) ? `LIMIT ${startLimit}, ${limit}` : '';
+
         let sql = `SELECT a.answerId,a.questionIdFK,q1.title as questionType,q.title as question,a.answer,IF(a.isDanger = 1, 'Yes','No') AS isDanger from answer a 
                    JOIN question q on a.questionIdFK = q.questionId 
                    JOIN questiontype q1 ON q.questionTypeIdFK = q1.questionTypeId 
@@ -87,7 +87,7 @@ class Asset {
         return sql;
     }
 
-    addAssetSQL(organizationIdFK) {
+    addAssetSQL() {
 
         let sql = `INSERT INTO asset
            (assetTitle,
@@ -118,20 +118,18 @@ class Asset {
                    '${this.userGuideBook}',
                     ${this.checkingDuration},
                     ${this.durationTypeIdFK},
-                    CONCAT((SELECT SUBSTRING(UCASE(organizationName),1,4) as prefix FROM organization
-                    WHERE organizationId = ${organizationIdFK}),'${this.assetCode}'),
+                   '${this.assetCode}',
                     ${this.warrenty},
                     ${this.warrantyDurationTypeIdFK},
                     ${this.supplierIdFK},
                     ${this.departmentIdFK},
                     ${this.manufacturerIdFK},
                     ${this.organizationIdFK})`;
-                    
+
         return sql;
     }
 
-    addAssetCatRelation(assetId,categoryId)
-    {
+    addAssetCatRelation(assetId, categoryId) {
         let sql = `INSERT INTO assetcatrelation(assetIdFK,categoryIdFK)VALUES('${assetId}','${categoryId}')`;
         return sql;
     }
@@ -139,7 +137,7 @@ class Asset {
     updateAssetByIdSQL(assetId) {
         let sql = `UPDATE asset SET  
             assetTitle                   = '${this.assetTitle}',
-            modelNumber                  = '${this.modelNumber}',          
+            modelNumber                  = '${this.modelNumber}',
             companyAssetNo               = '${this.companyAssetNo}',
             description                  = '${this.description}',
             image                        = '${this.image}',
@@ -160,7 +158,7 @@ class Asset {
         return sql;
     }
 
-    updateAssetCatRelation(assetId,categoryId){
+    updateAssetCatRelation(assetId, categoryId) {
         let sql = `UPDATE assetcatrelation SET categoryIdFK = '${categoryId}' WHERE assetIdFK = ${assetId}`
         return sql;
     }
@@ -174,39 +172,38 @@ class Asset {
         let sql = `UPDATE asset SET isDeleted = 1 WHERE assetId = ${assetId}`;
         return sql;
     }
-    
-    static getInstallationLocationType(){
+
+    static getInstallationLocationType() {
         let sql = `SELECT installationLocationTypeId as installationLocationTypeIdFK,title FROM installationlocationtype WHERE isDeleted = 0 ORDER BY createdOn DESC`;
         return sql;
     }
 
-    static getDurationType(){
+    static getDurationType() {
         let sql = `SELECT durationTypeId,title FROM durationtype WHERE isDeleted = 0 ORDER BY createdOn DESC`;
         return sql;
     }
 
-    static getSupplier(organizationIdFK){
+    static getSupplier(organizationIdFK) {
         let sql = `SELECT supplierId,CONCAT(firstName,' ',lastName) AS supplierName FROM supplier WHERE organizationIdFK = ${organizationIdFK} AND isDeleted = 0 ORDER BY createdOn DESC`;
         return sql;
     }
 
-    static getManufacturer(organizationIdFK){
+    static getManufacturer(organizationIdFK) {
         let sql = `SELECT manufacturerId,title FROM manufacturer WHERE organizationIdFK = ${organizationIdFK} AND isDeleted = 0 ORDER BY createdOn DESC`;
         return sql;
     }
 
-    static getAsset(organizationIdFK){
+    static getAsset(organizationIdFK) {
         let sql = `SELECT assetId,assetTitle from asset WHERE organizationIdFK = ${organizationIdFK} AND isDeleted = 0`;
         return sql;
     }
-    static getAssetCodeDetailsByCategory(organizationIdFK,categoryId){
-        
+    static getAssetCodeDetailsByCategory(organizationIdFK, categoryId) {
+
         let sql = `SELECT a.assetId,a.assetTitle,a.assetCode,a.modelNumber FROM asset a
         LEFT JOIN assetcatrelation a2 ON a2.assetIdFK = a.assetId
         LEFT JOIN category c on a2.categoryIdFK = c.categoryId
-        WHERE a.organizationIdFK =${organizationIdFK} AND a2.categoryIdFK =${categoryId} AND a.isDeleted = 0 ORDER BY a.createdOn DESC`;    
+        WHERE a.organizationIdFK =${organizationIdFK} AND a2.categoryIdFK =${categoryId} AND a.isDeleted = 0 ORDER BY a.createdOn DESC`;
         return sql;
     }
-}   
-
+}
 module.exports = Asset;

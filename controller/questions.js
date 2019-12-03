@@ -2,7 +2,6 @@ const express = require("express");
 const db = require("../db/database");
 const Question = require("../model/question_model");
 const { verifyToken } = require("../config/verifyJwtToken");
-
 const { check, validationResult } = require('express-validator');
 const router = express.Router();
 
@@ -129,22 +128,36 @@ router.get("/questionsList/:checklistId/:pageNo", (req, res, next) => {
                 pageCount1 = data1.length;
 
                 db.query(Question.getAllQuestionsSQL(checklistId, limit, page), (err, data) => {
-                    if (!err) {
-                        if (data && data.length > 0) {
-                            res.status(200).json({
-                                "currentPage": page,
-                                "totalCount": pageCount1,
-                                "question": data,
-                                message: "Questions List found",
-                            });
-                        } else {
-                            res.status(200).json({
-                                "currentPage": page,
-                                "totalCount": pageCount1,
-                                "question": [],
-                                message: "No record found"
-                            });
+                    let question = data;
+
+                    if (!err && data && data.length > 0) {
+
+                        for (let index = 0; index < question.length; index++) {
+                            const element = question[index];
+                            db.query(Question.getOptionsListSQL(element.questionId), (err2, data2) => {
+
+                                if (!err2) {
+                                    element.questionOptions = data2;
+                                    if ((data.length - 1) == index) {
+                                        setTimeout(function () {
+                                            res.status(200).json({
+                                                "currentPage": page,
+                                                "totalCount": pageCount1,
+                                                "question": question,
+                                                message: "Questions List found",
+                                            });
+                                        }, 100)
+                                    }
+                                }
+                            })
                         }
+                    } else {
+                        res.status(200).json({
+                            "currentPage": page,
+                            "totalCount": pageCount1,
+                            "question": question,
+                            message: "No record found"
+                        });
                     }
                 });
             }
@@ -473,14 +486,14 @@ router.put("/updateQuestion", [
             if (data) {
 
                 if (!err) {
-                    if(options.length > 0){
-                        
+                    if (options.length > 0) {
+
                         for (let index = 0; index < options.length; index++) {
 
                             const element = options[index];
                             let option = new Question(element);
                             let questionOptionId = element.questionOptionId;
-    
+
                             db.query(option.checkOptionIdSQL(questionOptionId), (err1, data2) => {
                                 let optionIdCount = data2[0].optionIdCount;
                                 let sql = ''
@@ -490,7 +503,7 @@ router.put("/updateQuestion", [
                                     sql = option.addQuestionOptionSQL(questionId)
                                 }
                                 db.query(sql, (err, data1) => {
-                                    
+
                                     if (index == options.length - 1 && !err) {
                                         if (data && data.affectedRows > 0) {
                                             res.status(200).json({
@@ -512,7 +525,7 @@ router.put("/updateQuestion", [
                                 });
                             })
                         }
-                    }else{
+                    } else {
                         res.status(200).json({
                             message: "Question updated successfully",
                             affectedRows: data.affectedRows
@@ -930,7 +943,7 @@ router.get("/selectQuestionType", (req, res, next) => {
                     });
                 }
                 else {
-                    res.status(404).json({
+                    res.status(200).json({
                         message: "Question Type List Not Found"
                     });
                 }

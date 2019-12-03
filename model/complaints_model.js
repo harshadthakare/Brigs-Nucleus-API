@@ -1,25 +1,24 @@
-const {BASE_URL} = require("../config/constants");
+const { BASE_URL } = require("../config/constants");
 class Complaints {
 
     constructor(obj) {
         obj && Object.assign(this, obj)
     }
-    
-    static addComplaintImageSQL(complaintId,complaintImage)
-    {
+
+    static addComplaintImageSQL(complaintId, complaintImage) {
         let sql = `INSERT INTO complaintimages(complaintIdFK,imageName)VALUES('${complaintId}','${complaintImage}')`;
         return sql;
     }
 
     addComplaintSQL(adminId) {
         let sql = `INSERT INTO complaint (typeOfComplaintFK, assetIdFK, complaintStatusIdFK, title, message, typeOfUserIdFK, raiseBy) 
-        VALUES (2, ${this.assetIdFK}, 1, '${this.title}','${this.message}', 2 ,${adminId})`;
+        VALUES (2, ${this.assetIdFK}, 2, '${this.title}','${this.message}', 2 ,${adminId})`;
         return sql;
     }
 
-    addComplaintTrackingSQL(complaintIdFK , userIdFK) {
+    addComplaintTrackingSQL(complaintIdFK, userIdFK) {
         let sql = `INSERT INTO complainttrack (complaintIdFK, complaintStatusIdFK, typeOfUserIdFK, masterId)
-                    VALUES (${complaintIdFK}, 1, 3,${userIdFK})`;
+                    VALUES (${complaintIdFK}, 2, 3, ${userIdFK})`;
         return sql;
     }
 
@@ -59,7 +58,7 @@ class Complaints {
 
         let limitString = (limit > 0) ? `LIMIT ${startLimit}, ${limit}` : '';
 
-        let sql = `SELECT c.complaintId,c.title,a.assetTitle,a.assetCode,cs.title as complaintStatus,tu.title as typeOfUser,
+        let sql = `SELECT c.complaintId,c.title,tc.title as typeOfComplaint,a.assetTitle,a.assetCode,cs.title as complaintStatus,tu.title as typeOfUser,
                    CASE 
                        WHEN c.typeOfUserIdFK = 1 THEN (SELECT CONCAT(firstName ,' ', lastName)as raiseByName FROM superadmin WHERE superAdminId = c.raiseBy)
                        WHEN c.typeOfUserIdFK = 2 THEN (SELECT CONCAT(firstName ,' ', lastName)as raiseByName FROM admin WHERE adminId = c.raiseBy)
@@ -68,19 +67,18 @@ class Complaints {
                    FROM complaint c JOIN asset a ON a.assetId = c.assetIdFK
                    JOIN complaintstatus cs ON cs.complaintStatusId = c.complaintStatusIdFK
                    JOIN typeofuser tu ON c.typeOfUserIdFK = tu.typeOfUserId
+                   JOIN typeofcomplaint tc ON c.typeOfComplaintFK = tc.typeComplaintId
                    WHERE c.isDeleted = 0 AND c.typeOfComplaintFK = 2 ORDER BY c.createdOn DESC ${limitString}`;
         return sql;
     }
 
-    static getComplaintCount()
-    {
+    static getComplaintCount() {
         let sql = `SELECT COUNT(complaintId) AS totalComplaints FROM complaint where typeOfComplaintFK = 2 AND isDeleted = 0`;
         return sql;
     }
 
-    static getAllComplaintsSearchSQL(keyword)
-    {
-        let sql = `SELECT c.complaintId,c.title,a.assetTitle,a.assetCode,cs.title as complaintStatus,tu.title as typeOfUser,
+    static getAllComplaintsSearchSQL(keyword) {
+        let sql = `SELECT c.complaintId,c.title,tc.title as typeOfComplaint,a.assetTitle,a.assetCode,cs.title as complaintStatus,tu.title as typeOfUser,
                    CASE 
                         WHEN c.typeOfUserIdFK = 1 THEN (SELECT CONCAT(firstName ,' ', lastName)as raiseByName FROM superadmin WHERE superAdminId = c.raiseBy)
                         WHEN c.typeOfUserIdFK = 2 THEN (SELECT CONCAT(firstName ,' ', lastName)as raiseByName FROM admin WHERE adminId = c.raiseBy)
@@ -89,11 +87,12 @@ class Complaints {
                    FROM complaint c JOIN asset a ON a.assetId = c.assetIdFK
                    JOIN complaintstatus cs ON cs.complaintStatusId = c.complaintStatusIdFK
                    JOIN typeofuser tu ON c.typeOfUserIdFK = tu.typeOfUserId
-                   WHERE c.title LIKE '%${keyword}%' AND c.isDeleted = 0 AND c.typeOfComplaintFK = 2`;           
+                   JOIN typeofcomplaint tc ON c.typeOfComplaintFK = tc.typeComplaintId
+                   WHERE c.title LIKE '%${keyword}%' AND c.isDeleted = 0 AND c.typeOfComplaintFK = 2`;
         return sql;
     }
 
-    static getParticularComplaintByIdSQL(complaintId) {        
+    static getParticularComplaintByIdSQL(complaintId) {
         let sql = `SELECT ct.title as typeOfComplaint,c.title,a.assetTitle,a.assetCode,cs.title as complaintStatus,tu.title as typeOfUser,c.message,CONCAT('${BASE_URL}','',ci.imageName) as complaintImage,
                    CASE 
                         WHEN c.typeOfUserIdFK = 1 THEN (SELECT CONCAT(firstName ,' ', lastName)as raiseByName FROM superadmin WHERE superAdminId = c.raiseBy)
@@ -109,22 +108,22 @@ class Complaints {
         return sql;
     }
 
-    static deleteComplaintSQL(complaintId){
+    static deleteComplaintSQL(complaintId) {
         let sql = `UPDATE complaint SET isDeleted = 1 WHERE complaintId = ${complaintId}`;
         return sql;
     }
-    
-    static deleteResponsiblePersonSQL(complaintId){
+
+    static deleteResponsiblePersonSQL(complaintId) {
         let sql = `UPDATE responsiblePerson SET isDeleted = 1 WHERE complaintIdFK = ${complaintId}`;
         return sql;
     }
 
-    static deleteComplaintTrackSQL(complaintId){
+    static deleteComplaintTrackSQL(complaintId) {
         let sql = `UPDATE complainttrack SET isDeleted = 1 WHERE complaintIdFK = ${complaintId}`;
         return sql;
     }
 
-    static getComplaintTrackListSQL(complaintId,limit = 0, start = 0){
+    static getComplaintTrackListSQL(complaintId, limit = 0, start = 0) {
         let startLimit = limit * start;
 
         let limitString = (limit > 0) ? `LIMIT ${startLimit}, ${limit}` : '';
@@ -137,12 +136,11 @@ class Complaints {
                    JOIN complaintstatus cs ON ct.complaintStatusIdFK = cs.complaintStatusId 
                    JOIN typeofuser tu ON ct.typeOfUserIdFK = tu.typeOfUserId 
                    JOIN user u ON ct.masterId = u.userId 
-                   WHERE ct.complaintIdFK = ${complaintId} AND ct.typeOfUserIdFK = 3 AND ct.isDeleted = 0 ORDER BY c.createdOn DESC ${limitString} `;
+                   WHERE ct.complaintIdFK = ${complaintId} AND c.typeOfComplaintFK = 2 AND ct.typeOfUserIdFK = 3 AND ct.isDeleted = 0 ORDER BY c.createdOn DESC ${limitString} `;
         return sql;
     }
 
-    static getComplaintTrackSearch(complaintId, keyword)
-    { 
+    static getComplaintTrackSearch(complaintId, keyword) {
         let sql = `SELECT IF(u.profileImage='' || profileImage is NULL ,CONCAT('${BASE_URL}','user.png'), CONCAT('${BASE_URL}',u.profileImage)) as userProfile,
                    tc.title as typeOfComplaint,tu.title AS typeOfUser,CONCAT(u.firstName,' ',u.lastName)as userName,DATE_FORMAT(ct.createdOn, '%d %M %Y')as createdDate,
                    cs.title as complaintStatus FROM complainttrack ct 
@@ -151,42 +149,42 @@ class Complaints {
                    JOIN complaintstatus cs ON ct.complaintStatusIdFK = cs.complaintStatusId 
                    JOIN typeofuser tu ON ct.typeOfUserIdFK = tu.typeOfUserId 
                    JOIN user u ON ct.masterId = u.userId 
-                   WHERE ct.complaintIdFK = ${complaintId} AND ct.typeOfUserIdFK = 3 AND CONCAT(u.firstName, '' , u.lastName) LIKE '%${keyword}%' AND ct.isDeleted = 0`;
+                   WHERE ct.complaintIdFK = ${complaintId} AND c.typeOfComplaintFK = 2 AND ct.typeOfUserIdFK = 3 AND CONCAT(u.firstName, '' , u.lastName) LIKE '%${keyword}%' AND ct.isDeleted = 0`;
         return sql;
     }
 
-    updateComplaintStatusByIdSQL(complaintId){
+    updateComplaintStatusByIdSQL(complaintId) {
         let sql = `UPDATE complainttrack SET complaintStatusIdFK = ${this.complaintStatusIdFK} WHERE complaintIdFK = ${complaintId}`;
         return sql;
     }
 
-    static getTransferComplaintListSQL(complaintId,limit = 0, start = 0){
+    static getTransferComplaintListSQL(complaintId, limit = 0, start = 0) {
         let startLimit = limit * start;
 
         let limitString = (limit > 0) ? `LIMIT ${startLimit}, ${limit}` : '';
 
         let sql = `SELECT tc.transferComplaintId,c.title AS complaintTitle,CONCAT(u1.firstName,' ',u1.lastName)AS fromUser,CONCAT(u.firstName,' ',u.lastName)AS toUser,
-                   ts.title as transferStatus,DATE_FORMAT(tc.createdOn, '%d %M %Y')AS createdDate FROM transfercomplaint tc JOIN complaint c ON tc.complaintIdFK = c.complaintId 
+                   ts.title as transferStatus,DATE_FORMAT(tc.createdOn, '%d %M %Y')AS createdDate FROM transfercomplaint tc 
+                   JOIN complaint c ON tc.complaintIdFK = c.complaintId 
                    JOIN user u ON tc.toUserIdFK = u.userId 
                    JOIN user u1 ON tc.fromUserIdFK = u1.userId
                    JOIN transferstatus ts ON tc.transferStatusIdFK = ts.transferStatusId 
-                   WHERE tc.complaintIdFK = ${complaintId} AND tc.isDeleted = 0 ORDER BY tc.createdOn DESC ${limitString}`;
+                   WHERE tc.complaintIdFK = ${complaintId} AND c.typeOfComplaintFK = 2 AND tc.isDeleted = 0 ORDER BY tc.createdOn DESC ${limitString}`;
         return sql;
     }
 
-    static getComplaintTransferSearch(complaintId,keyword)
-    {    
+    static getComplaintTransferSearch(complaintId, keyword) {
         let sql = `SELECT tc.transferComplaintId,c.title AS complaintTitle,CONCAT(u1.firstName,' ',u1.lastName)AS fromUser,CONCAT(u.firstName,' ',u.lastName)AS toUser,
-                   ts.title as transferStatus,DATE_FORMAT(tc.createdOn, '%d %M %Y')AS createdDate FROM transfercomplaint tc JOIN complaint c ON tc.complaintIdFK = c.complaintId 
+                   ts.title as transferStatus,DATE_FORMAT(tc.createdOn, '%d %M %Y')AS createdDate FROM transfercomplaint tc 
+                   JOIN complaint c ON tc.complaintIdFK = c.complaintId 
                    JOIN user u ON tc.toUserIdFK = u.userId 
                    JOIN user u1 ON tc.fromUserIdFK = u1.userId
                    JOIN transferstatus ts ON tc.transferStatusIdFK = ts.transferStatusId 
-                   WHERE tc.complaintIdFK = ${complaintId} AND CONCAT(u1.firstName, '' , u1.lastName) LIKE '%${keyword}%' OR CONCAT(u.firstName, '' , u.lastName) LIKE '%${keyword}%' AND tc.isDeleted = 0`;                   
+                   WHERE tc.complaintIdFK = ${complaintId} AND c.typeOfComplaintFK = 2 AND CONCAT(u1.firstName, '' , u1.lastName) LIKE '%${keyword}%' OR CONCAT(u.firstName, '' , u.lastName) LIKE '%${keyword}%' AND tc.isDeleted = 0`;
         return sql;
     }
 
-    addTransferComplaintSQL(complaintId)
-    {
+    addTransferComplaintSQL(complaintId) {
         let sql = `INSERT INTO transfercomplaint(complaintIdFK,fromUserIdFK,toUserIdFK,transferStatusIdFK)VALUES('${complaintId}',${this.fromUserIdFK},${this.toUserIdFK},1)`;
         return sql;
     }
@@ -198,7 +196,7 @@ class Complaints {
         return sql;
     }
 
-    updateTransferStatusByIdSQL(complaintId){
+    updateTransferStatusByIdSQL(complaintId) {
         let sql = `UPDATE transfercomplaint SET transferStatusIdFK = ${this.transferStatusIdFK} WHERE complaintIdFK = ${complaintId}`;
         return sql;
     }
@@ -208,7 +206,7 @@ class Complaints {
         return sql;
     }
 
-    static deleteTransferComplaintByIdSQL(complaintId){
+    static deleteTransferComplaintByIdSQL(complaintId) {
         let sql = `UPDATE transfercomplaint SET isDeleted = 1 WHERE complaintIdFK = ${complaintId}`;
         return sql;
     }

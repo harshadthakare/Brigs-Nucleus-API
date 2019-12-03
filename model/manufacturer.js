@@ -3,10 +3,10 @@ class Manufacturer {
         obj && Object.assign(this, obj)
     }
 
-    static getAllManufacturersSQL(organizationIdFK,limit=0, start=0) {
-        let startLimit = limit*start;
+    static getAllManufacturersSQL(organizationIdFK, limit = 0, start = 0) {
+        let startLimit = limit * start;
 
-        let limitString = (limit>0) ? `LIMIT ${startLimit}, ${limit}`: '';
+        let limitString = (limit > 0) ? `LIMIT ${startLimit}, ${limit}` : '';
 
         let sql = `SELECT m.manufacturerId,m.title,o.organizationName FROM manufacturer m JOIN organization o 
                    on m.organizationIdFK = o.organizationId WHERE m.organizationIdFK = ${organizationIdFK} AND m.isDeleted = 0 ORDER BY m.createdOn DESC ${limitString}`;
@@ -24,7 +24,7 @@ class Manufacturer {
                     VALUES ('${this.title}',${this.organizationIdFK})`;
         return sql;
     }
-    
+
     updateManufacturerByIdSQL(manufacturerId) {
         let sql = `UPDATE manufacturer SET  
         title = '${this.title}'

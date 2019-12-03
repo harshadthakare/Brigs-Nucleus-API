@@ -15,9 +15,6 @@ var storage = multer.diskStorage({
         if (file.mimetype === 'image/gif') {
             cb(null, 'image-' + Date.now() + '.gif');
         }
-        else if (file.mimetype === 'image/gif') {
-            cb(null, 'image-' + Date.now() + '.GIF');
-        }
         else if (file.mimetype === 'image/png') {
             cb(null, 'image-' + Date.now() + '.png');
         }
@@ -168,7 +165,7 @@ router.get("/listOfUsers/:departmentId/:pageNo", (req, res, next) => {
  *         description: Bad request
  */
 
-router.get("/userSearch/", [
+router.get("/userSearch/",[
     // validation rules start 
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
@@ -313,9 +310,9 @@ router.post("/addUser", [
         }
         // ....!  end send response of validation to client
         let user = new User(req.body);
-
+        
         db.query(user.addUserSQL(), (err, data) => {
-
+            
             if (!err) {
                 res.status(200).json({
                     message: "User added successfully",
@@ -323,11 +320,12 @@ router.post("/addUser", [
                 });
             } else {
                 let message = '';
-                if (err.message.includes('ER_DUP_ENTRY')) {
-                    message = 'Email Id already exist'
+                if(err.message.includes('ER_DUP_ENTRY'))
+                {
+                    message='Email Id already exist'
                 }
-                else {
-                    message = 'Something went wrong'
+                else{
+                    message='Something went wrong'
                 }
 
                 res.status(200).json({
@@ -419,11 +417,12 @@ router.put("/updateUser/:userId", [
                                 });
                             } else {
                                 let message = '';
-                                if (err.message.includes('ER_DUP_ENTRY')) {
-                                    message = 'Email Id already exist'
+                                if(err.message.includes('ER_DUP_ENTRY'))
+                                {
+                                    message='Email Id already exist'
                                 }
-                                else {
-                                    message = 'Something went wrong'
+                                else{
+                                    message='Something went wrong'
                                 }
 
                                 res.status(200).json({
@@ -537,7 +536,7 @@ router.post('/uploadProfileImage', upload.single('file'), (req, res, next) => {
                 status: false
             })
         }
-        else {
+        else{
             let item = {
                 ImageName: req.file.filename,
                 status: true
@@ -573,16 +572,16 @@ router.get("/selectUserRole", (req, res, next) => {
     verifyToken(req, res, tokendata => {
 
         db.query(User.getUserRoleList(tokendata.organizationIdFK), (err, data) => {
-            if (!err) {
-                if (data && data.length > 0) {
+            if(!err){
+                if(data && data.length > 0){
                     res.status(200).json({
                         userRole: data,
                         message: "User Role List Found"
                     });
                 }
-                else {
+                else{
                     res.status(400).json({
-                        message: "User Role List Not Found"
+                        message:"User Role List Not Found"
                     });
                 }
             }
@@ -617,16 +616,16 @@ router.get("/selectUser", (req, res, next) => {
 
         db.query(User.getUsersList(tokendata.organizationIdFK), (err, data) => {
 
-            if (!err) {
-                if (data && data.length > 0) {
+            if(!err){
+                if(data && data.length > 0){
                     res.status(200).json({
                         user: data,
                         message: "User List Found"
                     });
                 }
-                else {
+                else{
                     res.status(400).json({
-                        message: "User List Not Found"
+                        message:"User List Not Found"
                     });
                 }
             }

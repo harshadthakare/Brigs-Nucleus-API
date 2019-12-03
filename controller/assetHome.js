@@ -73,7 +73,7 @@ router.get("/allCategories/:categoryId", (req, res, next) => {
     verifyToken(req, res, tokendata => {
         let cId = req.params.categoryId;
 
-        db.query(AssetHome.getAllCategory(tokendata.organizationIdFK,cId), (err, data) => {
+        db.query(AssetHome.getAllCategory(tokendata.organizationIdFK, cId), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({
@@ -117,11 +117,11 @@ router.get("/allCategories/:categoryId", (req, res, next) => {
  *         description: Bad request
  */
 
-router.get("/categorySearch/",[
+router.get("/categorySearch/", [
     // validation rules start 
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
-     
+
     verifyToken(req, res, tokendata => {
 
         // send response of validation to client
@@ -138,7 +138,7 @@ router.get("/categorySearch/",[
                 if (data && data.length > 0) {
                     res.status(200).json({
                         status: true,
-                        data:data,
+                        data: data,
                         message: "Category Found"
                     });
                 } else {

@@ -29,8 +29,8 @@ const router = express.Router();
  */
 router.get("/viewAdminProfile", (req, res, next) => {
     verifyToken(req, res, tokendata => {
-        
         let aId = tokendata.adminId;
+
         db.query(Profile.getAdminProfile(aId), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
@@ -99,7 +99,7 @@ router.post("/changepassword", (req, res, next) => {
         db.query(Profile.getPerAdminData(password), (err, data) => {
             if (data.length > 0) {
 
-                let aId = tokendata.adminId;
+                let aId = data[0].adminId;
                 db.query(Profile.updatePasswordById(newPassword, aId, password), (err, data) => {
                     if (!err) {
                         if (data.changedRows == 1) {
@@ -108,7 +108,7 @@ router.post("/changepassword", (req, res, next) => {
                                 message: "Your Password has been changed successfully"
                             });
                         } else {
-                            res.status(400).json({
+                            res.status(200).json({
                                 status: false,
                                 message: "Old password and new password could not be the same"
                             })
@@ -117,7 +117,7 @@ router.post("/changepassword", (req, res, next) => {
                 })
             }
             else {
-                res.status(400).json({
+                res.status(200).json({
                     status: false,
                     message: "Old password was incorrect"
                 })

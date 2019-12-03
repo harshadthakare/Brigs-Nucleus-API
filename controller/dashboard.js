@@ -2,6 +2,7 @@ const express = require("express");
 const db = require("../db/database");
 const Dashboard = require("../model/dashboard_model");
 const { verifyToken } = require("../config/verifyJwtToken");
+const { superVerifyToken } = require("../config/superVerifyJwtToken");
 const router = express.Router();
 
 /**
@@ -33,8 +34,7 @@ router.get("/home", (req, res, next) => {
                 if (data && data.length > 0) {
                     res.status(200).json({
                         "dashboard": data,
-                        message: "Total Counts",
-                        organizationIdFK: tokendata.organizationIdFK
+                        message: "Total Counts"
                     });
                 } else {
                     res.status(404).json({
@@ -77,9 +77,9 @@ router.get("/getMaintenanceNotDoneAssets/:pageNo", (req, res, next) => {
         const page = req.params.pageNo;
         var pageCount = 0;
         db.query(Dashboard.getMaintenanceNotDoneAssetCount(tokendata.organizationIdFK), (err2, data2) => {
-     
+
             let totalMaintenceRemainingAssets = data2[0].totalMaintenceRemainingAssets;
-            
+
             if (data2) {
                 db.query(Dashboard.getAllNotDoneMaintenceAssets(tokendata.organizationIdFK), (err1, data1) => {
                     if (data1) {
@@ -91,7 +91,7 @@ router.get("/getMaintenanceNotDoneAssets/:pageNo", (req, res, next) => {
                                     res.status(200).json({
                                         "currentPage": page,
                                         "totalCount": pageCount,
-                                        "totalMaintenceRemainingAssets":totalMaintenceRemainingAssets,
+                                        "totalMaintenceRemainingAssets": totalMaintenceRemainingAssets,
                                         "dashboard": data,
                                         message: "List of Assets Whose Maintainece not done"
                                     });
@@ -119,6 +119,47 @@ router.get("/getMaintenanceNotDoneAssets/:pageNo", (req, res, next) => {
             }
         });
 
+    })
+});
+
+/**
+ * @swagger
+ * /dashboard/superAdminCount:
+ *   get:
+ *     tags:
+ *       -  Dashboard
+ *     description: Returns List of all Organizations and Admins
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: Authorization
+ *         description: token
+ *         in: header
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK
+ *       404:
+ *         description: Not found
+ */
+
+router.get("/superAdminCount", (req, res, next) => {
+    superVerifyToken(req, res, tokendata => {
+
+        db.query(Dashboard.getAllSuperCounts(), (err, data) => {
+            if (!err) {
+                if (data && data.length > 0) {
+                    res.status(200).json({
+                        "dashboard": data,
+                        message: "Total Counts"
+                    });
+                } else {
+                    res.status(404).json({
+                        message: "Not found"
+                    });
+                }
+            }
+        });
     })
 });
 

@@ -1,32 +1,24 @@
 const express = require("express");
 const db = require("../db/database");
-const AssetCategory = require("../model/assetcategory");
-const { verifyToken } = require("../config/verifyJwtToken");
-const { generateCatArray } = require("../config/generateArray");
-const { check, validationResult } = require('express-validator');
+const Admin = require("../model/admin_model");
 const router = express.Router();
+const { check, validationResult } = require('express-validator');
+const { superVerifyToken } = require("../config/superVerifyJwtToken");
 
 /**
  * @swagger
- * definitions:
- *   AssetCategory :
- *     properties:
- *      parentId:
- *         type: integer
- *      title:
- *         type: string
- */
-
-/**
- * @swagger
- * /assetcategories/categoryList:
+ * /admin/listOfAdmins/{pageNo}:
  *   get:
  *     tags:
- *       - AssetCategory
- *     description: Returns all Asset Categories
+ *       - Admin
+ *     description: Returns List of All Admins
  *     produces:
  *       - application/json
  *     parameters:
+ *       - name: pageNo
+ *         description: "pageNo is always starts with 0"
+ *         in: path
+ *         required: true
  *       - name: Authorization
  *         description: token
  *         in: header
@@ -37,33 +29,41 @@ const router = express.Router();
  *       404:
  *         description: Not found
  *       400:
- *         description: Bad request   
+ *         description: Bad request 
  */
 
-router.get("/categoryList", (req, res, next) => {
-    verifyToken(req, res, tokendata => {
+router.get("/listOfAdmins/:pageNo", (req, res, next) => {
+    superVerifyToken(req, res, tokendata => {
+        const limit = 10;
+        const page = req.params.pageNo;
+        var pageCount1 = 0;
 
-        db.query(AssetCategory.getAllCategories(tokendata.organizationIdFK), (err, data) => {
-
-            let allCategory = data;
-            if (!err) {
-                if (data && data.length > 0) {
-
-                    generateCatArray(allCategory, (result) => {
-                        res.status(200).json({
-                            "assetCategory": result,
-                            message: "Asset Category List found"
-                        });
-                    })
-                } else {
-                    res.status(404).json({
-                        message: "Asset Category List Not found"
-                    });
-                }
+        db.query(Admin.getAllAdminsSQL(), (err1, data1) => {
+            if (data1) {
+                pageCount1 = data1.length;
+                db.query(Admin.getAllAdminsSQL(limit, page), (err, data) => {
+                    if (!err) {
+                        if (data && data.length > 0) {
+                            res.status(200).json({
+                                "currentPage": page,
+                                "totalCount": pageCount1,
+                                "admin": data,
+                                message: "Admin List found",
+                            });
+                        } else {
+                            res.status(200).json({
+                                "currentPage": page,
+                                "totalCount": pageCount1,
+                                "admin": [],
+                                message: "No record found"
+                            });
+                        }
+                    }
+                });
             }
             else {
-                res.status(404).json({
-                    message: "Asset Category List Not found"
+                res.status(400).json({
+                    message: "Something went wrong...!!"
                 });
             }
         });
@@ -72,11 +72,11 @@ router.get("/categoryList", (req, res, next) => {
 
 /**
  * @swagger
- * /assetcategories/allCategorySearch:
+ * /admin/adminSearch:
  *   get:
  *     tags:
- *       - AssetCategory 
- *     description: Returns List of Categories
+ *       - Admin  
+ *     description: Returns List of Admins
  *     produces:
  *       - application/json
  *     parameters:
@@ -97,12 +97,12 @@ router.get("/categoryList", (req, res, next) => {
  *         description: Bad request
  */
 
-router.get("/allCategorySearch/", [
+router.get("/adminSearch/", [
     // validation rules start 
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
 
-    verifyToken(req, res, tokendata => {
+    superVerifyToken(req, res, tokendata => {
 
         // send response of validation to client
         const errors = validationResult(req);
@@ -113,13 +113,13 @@ router.get("/allCategorySearch/", [
 
         let keyword = req.query.keyword;
 
-        db.query(AssetCategory.getCategorySearchSQL(tokendata.organizationIdFK, keyword), (err, data) => {
+        db.query(Admin.getAllAdminsSearchSQL(keyword), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({
                         status: true,
                         data: data,
-                        message: "Category Found"
+                        message: "Admin Found"
                     });
                 } else {
                     res.status(200).json({
@@ -134,47 +134,69 @@ router.get("/allCategorySearch/", [
 
 /**
  * @swagger
- * /assetcategories/addAssetCategory:
- *   post:
- *     tags:
- *       - AssetCategory
- *     description: Add Asset Category details
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: Asset Category
- *         description: Asset Category object
- *         in: body
- *         required: true
- *       - name: Authorization
- *         description: token
- *         in: header
- *         required: true
- *     responses:
- *       200:
- *         description: OK
- *       404:
- *         description: Not found
- *       400:
- *         description: Bad request
- *         schema:
- *           $ref: '#/definitions/AssetCategory'
+ * definitions:
+ *   Admin :
+ *     properties:
+ *      firstName:
+ *         type: string
+ *      lastName :
+ *         type: string
+ *      organizationIdFK:
+ *         type: integer
+ *      mobileNumber:
+ *         type: string
+ *      emailId:
+ *         type: string
+ *      password:
+ *         type: string
  */
-router.post("/addAssetCategory", [
-    // validation rules start 
 
-    check('parentId').trim().custom((value, { req }) => {
+/**
+* @swagger
+* /admin/addAdmin:
+*   post:
+*     tags:
+*       - Admin
+*     description: Adds Admin Details
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: Admin 
+*         description: admin object
+*         in: body
+*         required: true
+*       - name: Authorization
+*         description: token
+*         in: header
+*         required: true
+*     responses:
+*       200:
+*         description: OK
+*       404:
+*         description: Not found
+*       400:
+*         description: Bad request
+*         schema:
+*           $ref: '#/definitions/Admin'   
+*/
+
+router.post("/addAdmin", [
+    // validation rules start 
+    check('firstName').trim().isAlpha().withMessage('Only characters are allowed'),
+    check('lastName').trim().isAlpha().withMessage('Only characters are allowed'),
+    check('organizationIdFK').trim().custom((value, { req }) => {
         if (value < 0 || isNaN(value)) {
             throw new Error('Value can not be less than 0');
         }
         // Indicates the success of this synchronous custom validator
         return true;
     }),
-    check('title').trim().isLength({ min: 2 }).withMessage('must be at least 2 chars long')
-
+    check('mobileNumber').trim().isInt().isLength({ min: 10, max: 10 }).withMessage("Mobile number must be 10 digit"),
+    check('emailId').trim().normalizeEmail().isEmail().withMessage("Enter valid email id"),
+    check('password').isLength({ min: 6 }).withMessage('must be at least 6 chars long')
     // validation rules end 
 ], (req, res, next) => {
-    verifyToken(req, res, tokendata => {
+    superVerifyToken(req, res, tokendata => {
         // send response of validation to client
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -182,13 +204,12 @@ router.post("/addAssetCategory", [
         }
         // ....!  end send response of validation to client
 
-        let assetcategory = new AssetCategory(req.body);
-        assetcategory.organizationIdFK = tokendata.organizationIdFK;
+        let admin = new Admin(req.body);
 
-        db.query(assetcategory.addAssetCategorySQL(), (err, data) => {
+        db.query(admin.addAdminSQL(), (err, data) => {
             if (!err) {
                 res.status(200).json({
-                    message: "Asset Category added successfully",
+                    message: "Admin added successfully",
                     Id: data.insertId
                 });
             } else {
@@ -199,29 +220,29 @@ router.post("/addAssetCategory", [
         });
     })
 });
+
 /**
  * @swagger
- * /assetcategories/updateAssetCategory/{categoryId}:
+ * /admin/updateAdmin/{adminId}:
  *   put:
  *     tags:
- *       - AssetCategory
- *     description: Update Asset Category data By Asset Category Id
+ *       - Admin
+ *     description: Update Admin data By admin Id
  *     produces:
  *       - application/json
  *     parameters:
- *       - name: categoryId
- *         description: Enter AssetCategory Id
+ *       - name: adminId
+ *         description: Enter admin Id
  *         in: path
  *         type: integer
  *         required: true
- *       - name: Asset Category Data
- *         description: Asset Category Data from body
+ *       - name: admin Data
+ *         description: admin Data from body
  *         in: body
  *         required: true
  *       - name: Authorization
  *         description: token
  *         in: header
- *         type: string 
  *         required: true
  *     responses:
  *       200:
@@ -231,25 +252,26 @@ router.post("/addAssetCategory", [
  *       400:
  *         description: Bad request
  *         schema:
- *           $ref: '#/definitions/AssetCategory'
+ *           $ref: '#/definitions/Admin'
  */
 
-router.put("/updateAssetCategory/:categoryId", [
+router.put("/updateAdmin/:adminId", [
     // validation rules start 
-
-    check('parentId').trim().custom((value, { req }) => {
+    check('firstName').trim().isAlpha().withMessage('Only characters are allowed'),
+    check('lastName').trim().isAlpha().withMessage('Only characters are allowed'),
+    check('organizationIdFK').trim().custom((value, { req }) => {
         if (value < 0 || isNaN(value)) {
             throw new Error('Value can not be less than 0');
         }
         // Indicates the success of this synchronous custom validator
         return true;
     }),
-    check('title').trim().isLength({ min: 2 }).withMessage('must be at least 2 chars long')
-
+    check('mobileNumber').trim().isInt().isLength({ min: 10, max: 10 }).withMessage("Mobile number must be 10 digit"),
+    check('emailId').trim().normalizeEmail().isEmail().withMessage("Enter valid email id"),
+    check('password').isLength({ min: 6 }).withMessage('must be at least 6 chars long')
     // validation rules end 
 ], (req, res, next) => {
-    verifyToken(req, res, tokendata => {
-
+    superVerifyToken(req, res, tokendata => {
         // send response of validation to client
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -257,17 +279,17 @@ router.put("/updateAssetCategory/:categoryId", [
         }
         // ....!  end send response of validation to client
 
-        var cId = req.params.categoryId;
-        let assetcategory = new AssetCategory(req.body);
+        var aId = req.params.adminId;
+        let admin = new Admin(req.body);
 
-        db.query(AssetCategory.checkAssetCategoryId(cId), (err, data) => {
+        db.query(Admin.checkAdminId(aId), (err, data) => {
             if (data.length > 0) {
-                db.query(assetcategory.updateAssetCategoryByIdSQL(cId), (err, data) => {
+                db.query(admin.updateAdminSQL(aId), (err, data) => {
                     if (!err) {
 
                         if (data && data.affectedRows > 0) {
                             res.status(200).json({
-                                message: `Asset Category updated successfully`,
+                                message: "Admin updated successfully",
                                 affectedRows: data.affectedRows
                             })
                         } else {
@@ -282,25 +304,25 @@ router.put("/updateAssetCategory/:categoryId", [
             }
             else {
                 res.status(404).json({
-                    message: "Asset Category ID is not available"
+                    message: "Admin Id is not available"
                 });
             }
         });
-    });
+    })
 });
 
 /**
  * @swagger
- * /assetcategories/deleteAssetCategory/{categoryId}:
+ * /admin/deleteAdmin/{adminId}:
  *   put:
  *     tags:
- *       - AssetCategory
- *     description: Delete Asset Category data
+ *       - Admin
+ *     description: Delete Admin data
  *     produces:
  *       - application/json
  *     parameters:
- *       - name: categoryId
- *         description: category id
+ *       - name: adminId
+ *         description: Admin id
  *         in: path
  *         type: integer
  *         required: true
@@ -316,44 +338,45 @@ router.put("/updateAssetCategory/:categoryId", [
  *       400:
  *         description: Bad request
  */
-router.put("/deleteAssetCategory/:categoryId", (req, res, next) => {
-    verifyToken(req, res, tokendata => {
-        var cId = req.params.categoryId;
-
-        db.query(AssetCategory.checkAssetCategoryId(cId), (err, data) => {
+router.put("/deleteAdmin/:adminId", (req, res, next) => {
+    superVerifyToken(req, res, tokendata => {
+        var aId = req.params.adminId;
+        db.query(Admin.checkAdminId(aId), (err, data) => {
             if (data.length > 0) {
-                db.query(AssetCategory.deleteAssetCategoryByIdSQL(cId), (err, data) => {
+                db.query(Admin.deleteAdminByIdSQL(aId), (err, data) => {
                     if (!err) {
                         if (data && data.affectedRows > 0) {
                             res.status(200).json({
-                                message: "Asset Category deleted successfully",
+                                message: "Admin deleted successfully",
                                 affectedRows: data.affectedRows
                             });
                         } else {
                             res.status(400).json({
-                                message: "Asset Category is not deleted"
+                                message: "Admin is not deleted"
                             });
                         }
                     } else {
                         console.log(err.message);
+
                     }
                 });
             }
             else {
                 res.status(400).json({
-                    message: "Already deleted"
+                    message: "Something Went Wrong,Please Try Again...!"
                 });
             }
         });
     })
 });
+
 /**
  * @swagger
- * /assetcategories/selectAssetCategory:
+ * /admin/selectOrganization:
  *   get:
  *     tags:
- *       - AssetCategory
- *     description: API for Select Category From list of Asset Categories
+ *       - Admin
+ *     description: returns list of Organizations     
  *     produces:
  *       - application/json
  *     parameters:
@@ -369,19 +392,21 @@ router.put("/deleteAssetCategory/:categoryId", (req, res, next) => {
  *       400:
  *         description: Bad request
  */
-router.get("/selectAssetCategory", (req, res, next) => {
-    verifyToken(req, res, tokendata => {
 
-        db.query(AssetCategory.getAssetCategorySQL(tokendata.organizationIdFK), (err, data) => {
+router.get("/selectOrganization/", (req, res, next) => {
+    superVerifyToken(req, res, tokendata => {
+
+        db.query(Admin.getAllOrganizationListsSQL(), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
+
                     res.status(200).json({
-                        AssetCategory: data,
-                        message: "Asset Category List Found",
+                        organization: data,
+                        message: "Oraganization List Found"
                     });
                 } else {
                     res.status(404).json({
-                        message: "Asset Category List Not Found"
+                        message: "Oraganization List Not Found"
                     });
                 }
             }

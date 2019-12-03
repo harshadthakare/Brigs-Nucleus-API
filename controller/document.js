@@ -32,26 +32,26 @@ var storage = multer.diskStorage({
         else if (file.mimetype === 'image/gif') {
             cb1(null, 'image-' + Date.now() + '.gif');
         }
-        else if (file.mimetype === 'image/gif') {
+        else if (file.mimetype === 'image/GIF') {
             cb1(null, 'image-' + Date.now() + '.GIF');
         }
         else if (file.mimetype === 'image/png') {
             cb1(null, 'image-' + Date.now() + '.png');
         }
+        else if (file.mimetype === 'image/PNG') {
+            cb1(null, 'image-' + Date.now() + '.PNG');
+        }
         else if (file.mimetype === 'image/jpeg') {
             cb1(null, 'image-' + Date.now() + '.jpeg');
+        }
+        else if (file.mimetype === 'image/JPEG') {
+            cb1(null, 'image-' + Date.now() + '.JPEG');
         }
         else if (file.mimetype === 'image/jpg') {
             cb1(null, 'image-' + Date.now() + '.jpg');
         }
         else if (file.mimetype === 'image/JPG') {
             cb1(null, 'image-' + Date.now() + '.JPG');
-        }
-        else if (file.mimetype === 'image/JPEG') {
-            cb1(null, 'image-' + Date.now() + '.JPEG');
-        }
-        else if (file.mimetype === 'image/PNG') {
-            cb1(null, 'image-' + Date.now() + '.PNG');
         }
         else if (file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
             cb1(null, 'document-' + Date.now() + '.xlsx')
@@ -66,7 +66,7 @@ var storage = multer.diskStorage({
             cb1(null, 'document-' + Date.now() + '.XLS')
         }
         else {
-            return cb1(new Error('Only pdf, doc, docx, gif, png, jpeg, jpg, xlsx or xls file types are allowed!'))
+            return cb1(new Error('Only pdf, doc or docx, gif, png, jpeg, jpg, xls or xlsx file types are allowed!'))
         }
     }
 });
@@ -367,8 +367,6 @@ router.get("/documentSearch/", [
                         message: "No record found"
                     });
                 }
-            } else {
-                console.log(err.message);
             }
         });
     })
@@ -607,20 +605,19 @@ router.post("/addDocument", [
 ], (req, res, next) => {
 
     verifyToken(req, res, tokendata => {
-        // send response of validation to client    
+        // send response of validation to client
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(422).json({ errors: errors.array() });
         }
         // ....!  end send response of validation to client
-          
         let obj = req.body;
         let documentCode = new Date().getTime()
-        obj.documentCode = documentCode;      
+        obj.documentCode = documentCode;
         let document = new Document(obj);
 
         db.query(document.addDocumentSQL(), (err, data) => {
-            
+
             if (!err) {
                 res.status(200).json({
                     message: "Document added successfully",
@@ -663,6 +660,7 @@ router.post("/addDocument", [
  *         schema:
  *           $ref: '#/definitions/Documate'
  */
+
 router.post("/addDocumate", [
     // validation rules start 
     check('title').trim().isLength({ min: 3 }).withMessage('must be at least 3 chars long'),
@@ -679,7 +677,7 @@ router.post("/addDocumate", [
         // ....!  end send response of validation to client
         let obj = req.body;
         let documentCode = new Date().getTime()
-        obj.documentCode = documentCode;      
+        obj.documentCode = documentCode;
         let document = new Document(obj);
 
         db.query(document.addDocumateSQL(), (err, data) => {
@@ -697,8 +695,6 @@ router.post("/addDocumate", [
         });
     })
 });
-
-
 
 /**
  * @swagger
@@ -793,7 +789,6 @@ router.put("/updateDocument/:documentId", [
             });
         })
     });
-
 
 /**
  * @swagger
@@ -944,7 +939,7 @@ router.put("/deleteDocument/:documentId", (req, res, next) => {
  *     description: Upload Category Document with pdf format 
  *     produces:
  *       - application/json
- *     summary: Uploads a gif, jpg, jpeg, pdf, doc, docx, xlsx and xls file formats. 
+ *     summary: Uploads a pdf file.
  *     consumes:
  *       - multipart/form-data
  *     parameters:

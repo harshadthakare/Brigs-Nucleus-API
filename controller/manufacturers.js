@@ -110,7 +110,6 @@ router.get("/listOfManufacturer/:pageNo", (req, res, next) => {
 router.get("/viewParticularManufacturer/:manufacturerId", (req, res, next) => {
     verifyToken(req, res, tokendata => {
         let mid = req.params.manufacturerId;
-        console.log(mid);
 
         db.query(Manufacturer.getManufacturerByIdSQL(mid), (err, data) => {
             if (!err) {
@@ -166,7 +165,7 @@ router.post("/addManufacturer", [ // validation rules start
     verifyToken(req, res, tokendata => {
 
         const errors = validationResult(req);
-        
+
         if (!errors.isEmpty()) {
             return res.status(422).json({ errors: errors.array() });
         }
@@ -182,12 +181,11 @@ router.post("/addManufacturer", [ // validation rules start
                 });
             } else {
                 let message = '';
-                if(err.message.includes('ER_DUP_ENTRY'))
-                {
-                    message='Manufacturer title already exist'
+                if (err.message.includes('ER_DUP_ENTRY')) {
+                    message = 'Manufacturer title already exist'
                 }
-                else{
-                    message='Something went wrong'
+                else {
+                    message = 'Something went wrong'
                 }
 
                 res.status(200).json({
@@ -262,19 +260,18 @@ router.put("/updateManufacturer/:manufacturerId", [ // validation rules start
                             });
                         } else {
                             let message = '';
-                            if(err.message.includes('ER_DUP_ENTRY'))
-                            {
-                                message='Manufacturer title already exist'
+                            if (err.message.includes('ER_DUP_ENTRY')) {
+                                message = 'Manufacturer title already exist'
                             }
-                            else{
-                                message='Something went wrong'
+                            else {
+                                message = 'Something went wrong'
                             }
-            
+
                             res.status(400).json({
                                 message: message
                             });
                         }
-                    } 
+                    }
                 });
             }
             else {

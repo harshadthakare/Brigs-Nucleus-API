@@ -6,30 +6,39 @@ class Dashboard {
     }
 
     static getAllCounts(organizationIdFK) {
-        let sql = `SELECT COUNT(assetId) AS totalAssetMate,
+        let sql = `SELECT COUNT(a.assetId) AS totalAssetMate,
         (SELECT COUNT(documentId) AS totalDocuMate FROM document where isDeleted = 0) AS totalDocuMate,
         (SELECT COUNT(complaintId) AS totalTaskMate FROM complaint where typeOfComplaintFK = 1 AND isDeleted = 0) AS totalTaskMate,
         (SELECT COUNT(complaintId) AS totalComplaints FROM complaint where typeOfComplaintFK = 2 AND isDeleted = 0) AS totalComplaints
-        FROM asset WHERE organizationIdFK = ${organizationIdFK} AND isDeleted = 0`;
+        FROM asset a 
+        JOIN assetcatrelation a1 ON a1.assetIdFK = a.assetId 
+        JOIN category c ON a1.categoryIdFK = c.categoryId 
+        WHERE a.organizationIdFK = ${organizationIdFK} AND a.isDeleted = 0 AND c.isDeleted = 0`;
         return sql;
     }
+
     static getAllNotDoneMaintenceAssets(organizationIdFK, limit = 0, start = 0) {
         let startLimit = limit * start;
 
         let limitString = (limit > 0) ? `LIMIT ${startLimit}, ${limit}` : '';
 
         let sql = `SELECT a.assetId,a.assetCode,assetTitle,a.modelNumber,a.description,CONCAT('${BASE_URL}','',a.image) as assetImage
-                    FROM asset a 
-                    LEFT JOIN donechecklist d ON d.assetIdFK = a.assetId    
-                    WHERE d.assetIdFK IS NULL AND a.organizationIdFK = ${organizationIdFK} AND a.isDeleted = 0
-                    ORDER BY a.createdOn DESC ${limitString}`;
+                   FROM asset a LEFT JOIN donechecklist d ON d.assetIdFK = a.assetId    
+                   WHERE d.assetIdFK IS NULL AND a.organizationIdFK = ${organizationIdFK} AND a.isDeleted = 0
+                   ORDER BY a.createdOn DESC ${limitString}`;
         return sql;
     }
+
     static getMaintenanceNotDoneAssetCount(organizationIdFK) {
-        let sql = `SELECT COUNT(a.assetId) AS totalMaintenceRemainingAssets 
-                    FROM asset a 
-                    LEFT JOIN donechecklist d ON d.assetIdFK = a.assetId 
-                    WHERE d.assetIdFK IS NULL AND a.organizationIdFK = ${organizationIdFK} AND a.isDeleted = 0`
+        let sql = `SELECT COUNT(a.assetId) AS totalMaintenceRemainingAssets FROM asset a LEFT JOIN donechecklist d ON d.assetIdFK = a.assetId 
+                   WHERE d.assetIdFK IS NULL AND a.organizationIdFK = ${organizationIdFK} AND a.isDeleted = 0`
+        return sql;
+    }
+
+    static getAllSuperCounts() {
+        let sql = `SELECT COUNT(organizationId) AS totalOrganizations,
+                   (SELECT COUNT(adminId) AS totalAdmins FROM admin where isDeleted = 0) AS totalAdmins
+                   FROM organization WHERE isDeleted = 0`;
         return sql;
     }
 }

@@ -112,11 +112,11 @@ router.get("/AlertList/:pageNo", (req, res, next) => {
  *         description: Bad request
  */
 
-router.get("/alertSearch/",[
+router.get("/alertSearch/", [
     // validation rules start 
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
-     
+
     verifyToken(req, res, tokendata => {
 
         // send response of validation to client
@@ -133,7 +133,7 @@ router.get("/alertSearch/",[
                 if (data && data.length > 0) {
                     res.status(200).json({
                         status: true,
-                        data:data,
+                        data: data,
                         message: "Alert Found"
                     });
                 } else {
@@ -315,11 +315,11 @@ router.get("/viewParticularAlertTrack/:alertId/:pageNo", (req, res, next) => {
  *         description: Bad request
  */
 
-router.get("/alertTrackSearch/",[
+router.get("/alertTrackSearch/", [
     // validation rules start 
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
-     
+
     verifyToken(req, res, tokendata => {
 
         // send response of validation to client
@@ -332,12 +332,12 @@ router.get("/alertTrackSearch/",[
         let alertId = req.query.alertId;
         let keyword = req.query.keyword;
 
-        db.query(Alerts.getAlertTrackSearch(alertId,keyword), (err, data) => {
+        db.query(Alerts.getAlertTrackSearch(alertId, keyword), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({
                         status: true,
-                        data:data,
+                        data: data,
                         message: "Alert Track List Found"
                     });
                 } else {

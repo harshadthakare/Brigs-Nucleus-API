@@ -3,10 +3,10 @@ class Supplier {
         obj && Object.assign(this, obj)
     }
 
-    static getAllSuppliersSQL(organizationIdFK,limit=0, start=0) {
-        let startLimit = limit*start;
+    static getAllSuppliersSQL(organizationIdFK, limit = 0, start = 0) {
+        let startLimit = limit * start;
 
-        let limitString = (limit>0) ? `LIMIT ${startLimit}, ${limit}`: '';
+        let limitString = (limit > 0) ? `LIMIT ${startLimit}, ${limit}` : '';
 
         let sql = `SELECT s.supplierId,s.firstName,s.lastName,s.businessName,s.mobileNumber,s.emailId,o.organizationName FROM supplier s 
                    JOIN organization o on s.organizationIdFK = o.organizationId WHERE s.organizationIdFK = ${organizationIdFK} AND s.isDeleted = 0 ORDER BY s.createdOn DESC ${limitString}`;
@@ -25,7 +25,7 @@ class Supplier {
                     VALUES ('${this.firstName}','${this.lastName}','${this.businessName}','${this.mobileNumber}','${this.emailId}',${this.organizationIdFK})`;
         return sql;
     }
-    
+
     updateSupplierByIdSQL(supplierId) {
         let sql = `UPDATE supplier SET  
         firstName = '${this.firstName}',
@@ -36,7 +36,7 @@ class Supplier {
         WHERE supplierId = ${supplierId}`;
         return sql;
     }
-    
+
     static checkSupplierId(supplierId) {
         let sql = `SELECT supplierId FROM supplier WHERE supplierId = ${supplierId} AND isDeleted = 0`;
         return sql;

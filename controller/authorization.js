@@ -39,7 +39,7 @@ const router = express.Router();
     *
     *     responses:
     *       200:
-    *         description: An array of Users
+    *         description: OK
     *         schema:
     *           $ref: '#/definitions/login'
     *
@@ -53,36 +53,66 @@ router.post("/login", [
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(200).json({ auth: false,message:errors.array()[0].msg});
+        return res.status(200).json({ auth: false, message: errors.array()[0].msg });
     }
 
     let user = new auth(req.body)
-    db.query(user.getAdminByAuthSQL(), (err, data) => {
-        if (err) {
+    db.query(user.getSuperAdminByAuthSQL(), (err1, data1) => {
+        if (err1) {
             res.status(200).json({
                 message: "Invalid Credentials"
             });
-        } else {
-            if (data && data.length > 0) {
-                
-                var aId = data[0].adminId;
-                var orgId = data[0].organizationIdFK;
+        }
+        else {
+            if (data1 && data1.length > 0) {
+                var sId = data1[0].superAdminId;
+                var orgId = 1;
 
-                var token = jwt.sign({ adminId: aId, organizationIdFK: orgId}, config.secret, {
+                var token = jwt.sign({ superAdminId: sId, organizationIdFK: orgId }, config.secret, {
                     expiresIn: 2400000
                 });
 
-                data[0].token = token
+                data1[0].token = token
+                data1[0].role = 0
+                data1[0].organizationName = "Super Admin"
                 res.status(200).send({
-                    auth: true, 
-                    data: data[0],
-                    message : "Admin Login Successfully"
+                    auth: true,
+                    data: data1[0],
+                    message: "Super Admin Login Successfully"
                 });
             }
             else {
-                res.status(200).send({
-                    auth: false, 
-                    message: "Invalid EmailId or Password"
+                let user1 = new auth(req.body)
+
+                db.query(user1.getAdminByAuthSQL(), (err, data) => {
+                    if (err) {
+                        res.status(200).json({
+                            message: "Invalid Credentials"
+                        });
+                    } else {
+                        if (data && data.length > 0) {
+                            var aId = data[0].adminId;
+                            var orgId = data[0].organizationIdFK;
+
+                            var token = jwt.sign({ adminId: aId, organizationIdFK: orgId }, config.secret, {
+                                expiresIn: 2400000
+                            });
+
+                            data[0].token = token
+                            data[0].role = 1
+                            res.status(200).send({
+                                auth: true,
+                                data: data[0],
+                                message: "Admin Login Successfully"
+                            });
+                        }
+                        else {
+                            res.status(200).send({
+                                auth: false,
+                                message: "Invalid EmailId or Password"
+                            });
+                        }
+                    }
                 });
             }
         }
@@ -234,6 +264,7 @@ router.post("/sendOtpViaMail", [check('email').trim().normalizeEmail().isEmail()
                     }
                     else {
                         db.query(auth.updateOTPByEmailSQL(otp, email), (err, data) => {
+                            console.log(data);
                             if (data.changedRows == 1) {
                                 res.status(200).json({
                                     status: true,
@@ -241,7 +272,7 @@ router.post("/sendOtpViaMail", [check('email').trim().normalizeEmail().isEmail()
                                 });
                             }
                             else {
-                                res.status(404).json({
+                                res.status(200).json({
                                     status: true,
                                     message: err.message
                                 });
@@ -307,7 +338,7 @@ check('mobileNumber').trim().isInt().isLength({ min: 10, max: 10 }).withMessage(
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(200).json({ status: false,message: "Invalid format" });
+        return res.status(200).json({ errors: errors.array() });
     }
     var otp = req.body.otp;
     var mobile_number = req.body.mobileNumber;
@@ -370,7 +401,7 @@ check('email').trim().normalizeEmail().isEmail().withMessage("Enter valid email 
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            return res.status(200).json({ status: false,message: "Invalid format" });
+            return res.status(200).json({ errors: errors.array() });
 
         }
         let verify = new auth(req.body);
@@ -432,78 +463,78 @@ check('email').trim().normalizeEmail().isEmail().withMessage("Enter valid email 
 */
 
 router.put("/saveNewPassword", [check('newPassword').isLength({ min: 6 }).withMessage('password must be at least 6 chars long'),
-	check('confirmPassword').isLength({ min: 6 }).withMessage('password must be at least 6 chars long')], 
-	(req, res, next) => {
+check('confirmPassword').isLength({ min: 6 }).withMessage('password must be at least 6 chars long')],
+    (req, res, next) => {
 
-	const errors = validationResult(req);
+        const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(422).json({ errors: errors.array() });
 
         }
-    let newPassword = req.body.newPassword;
-    let confirmPassword = req.body.confirmPassword;
-    let inputType = req.body.inputType;
-    let inputValue = req.body.inputValue;
-    let otp = req.body.otp;
+        let newPassword = req.body.newPassword;
+        let confirmPassword = req.body.confirmPassword;
+        let inputType = req.body.inputType;
+        let inputValue = req.body.inputValue;
+        let otp = req.body.otp;
 
-    if (inputType == 'mobile') {
-        db.query(auth.getUserByNoSQL(inputValue), (err, data) => {
+        if (inputType == 'mobile') {
+            db.query(auth.getUserByNoSQL(inputValue), (err, data) => {
 
-            if (data.length > 0) {
-                db.query(auth.updatePasswordByNoSQL(newPassword, inputValue), (err, data) => {
-                    if (!err) {
-                        if (data.changedRows == 1) {
+                if (data.length > 0) {
+                    db.query(auth.updatePasswordByNoSQL(newPassword, inputValue), (err, data) => {
+                        if (!err) {
+                            if (data.changedRows == 1) {
 
-                            res.status(200).json({
-                                status: true,
-                                message: "Password changed successfully."
-                            });
-                        } else {
-                            res.status(200).json({
-                                status: false,
-                                message: "Password is not changed.!! Please Try again."
-                            });
+                                res.status(200).json({
+                                    status: true,
+                                    message: "Password changed successfully."
+                                });
+                            } else {
+                                res.status(200).json({
+                                    status: false,
+                                    message: "Password is not changed.!! Please Try again."
+                                });
+                            }
                         }
-                    }
-                });
-            }
-            else {
-                res.status(200).json({
-                    status: false,
-                    message: "Mobile number is not registered."
-                });
-            }
-        })
-    }
+                    });
+                }
+                else {
+                    res.status(400).json({
+                        status: false,
+                        message: "Mobile number is not registered."
+                    });
+                }
+            })
+        }
 
-    if (inputType == 'email') {
-        db.query(auth.getUserByIdSQL(inputValue), (err, data) => {
-            if (data.length > 0) {
-                db.query(auth.updatePasswordByIdSQL(newPassword, inputValue, otp), (err, data) => {
-                    if (!err) {
-                        if (data.changedRows == 1) {
+        if (inputType == 'email') {
+            db.query(auth.getUserByIdSQL(inputValue), (err, data) => {
+                if (data.length > 0) {
+                    db.query(auth.updatePasswordByIdSQL(newPassword, inputValue, otp), (err, data) => {
+                        if (!err) {
+                            if (data.changedRows == 1) {
 
-                            res.status(200).json({
-                                status: true,
-                                message: "Password changed successfully."
-                            });
-                        } else {
-                            res.status(200).json({
-                                status: false,
-                                message: "Password is not changed.!! Please Try again."
-                            });
+                                res.status(200).json({
+                                    status: true,
+                                    message: "Password changed successfully."
+                                });
+                            } else {
+                                res.status(200).json({
+                                    status: false,
+                                    message: "Password is not changed.!! Please Try again."
+                                });
+                            }
                         }
-                    }
-                });
-            }
-            else {
-                res.status(200).json({
-                    status: false,
-                    message: "Email Id is not registered."
-                });
-            }
-        })
-    }
-});
+                    });
+                }
+                else {
+                    res.status(400).json({
+                        status: false,
+                        message: "Email Id is not registered."
+                    });
+                }
+            })
+        }
+    });
 
 module.exports = router;

@@ -8,14 +8,11 @@ const router = express.Router();
 var multer = require('multer');
 var storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, '../allUploads/complaintImages');
+        cb(null, './uploads/complaintImage');
     },
     filename: (req, file, cb) => {
         if (file.mimetype === 'image/gif') {
             cb(null, 'image-' + Date.now() + '.gif');
-        }
-        if (file.mimetype === 'image/gif') {
-            cb(null, 'image-' + Date.now() + '.GIF');
         }
         else if (file.mimetype === 'image/png') {
             cb(null, 'image-' + Date.now() + '.png');
@@ -117,7 +114,7 @@ router.get("/complaintsList/:pageNo", (req, res, next) => {
                                     res.status(200).json({
                                         "currentPage": page,
                                         "totalCount": pageCount1,
-                                        "totalComplaints":totalComplaints,
+                                        "totalComplaints": totalComplaints,
                                         "complaintList": data,
                                         message: "Complaint List found",
                                     });
@@ -175,11 +172,11 @@ router.get("/complaintsList/:pageNo", (req, res, next) => {
  *         description: Bad request
  */
 
-router.get("/complaintSearch/",[
+router.get("/complaintSearch/", [
     // validation rules start 
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
-     
+
     verifyToken(req, res, tokendata => {
 
         // send response of validation to client
@@ -196,7 +193,7 @@ router.get("/complaintSearch/",[
                 if (data && data.length > 0) {
                     res.status(200).json({
                         status: true,
-                        data:data,
+                        data: data,
                         message: "Complaint Found"
                     });
                 } else {
@@ -362,11 +359,11 @@ router.get("/complaintsTrackList/:complaintId/:pageNo", (req, res, next) => {
  *         description: Bad request
  */
 
-router.get("/complaintTrackSearch/",[
+router.get("/complaintTrackSearch/", [
     // validation rules start 
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
-     
+
     verifyToken(req, res, tokendata => {
 
         // send response of validation to client
@@ -379,12 +376,12 @@ router.get("/complaintTrackSearch/",[
         let complaintId = req.query.complaintId;
         let keyword = req.query.keyword;
 
-        db.query(Complaints.getComplaintTrackSearch(complaintId,keyword), (err, data) => {
+        db.query(Complaints.getComplaintTrackSearch(complaintId, keyword), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({
                         status: true,
-                        data:data,
+                        data: data,
                         message: "Complaint Track List Found"
                     });
                 } else {
@@ -828,11 +825,11 @@ router.get("/transferComplaintsList/:complaintId/:pageNo", (req, res, next) => {
  *         description: Bad request
  */
 
-router.get("/complaintTransferSearch/",[
+router.get("/complaintTransferSearch/", [
     // validation rules start 
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
-     
+
     verifyToken(req, res, tokendata => {
 
         // send response of validation to client
@@ -845,12 +842,12 @@ router.get("/complaintTransferSearch/",[
         let complaintId = req.query.complaintId;
         let keyword = req.query.keyword;
 
-        db.query(Complaints.getComplaintTransferSearch(complaintId,keyword), (err, data) => {
+        db.query(Complaints.getComplaintTransferSearch(complaintId, keyword), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({
                         status: true,
-                        data:data,
+                        data: data,
                         message: "Complaint Transfer List Found"
                     });
                 } else {

@@ -532,7 +532,7 @@ router.put("/deleteTaskmate/:complaintId", (req, res, next) => {
             if (!err1) {
                 db.query(Taskmate.deleteTaskTrackSQL(cId), (err2, data2) => {
 
-                    db.query(Taskmate.deleteComplaintSQL(cId), (err3, data3) => {
+                    db.query(Taskmate.deleteTaskSQL(cId), (err3, data3) => {
                         if (data3 && data3.affectedRows > 0) {
                             res.status(200).json({
                                 message: "Task deleted successfully",
@@ -682,13 +682,15 @@ router.post('/uploadTaskmateImage/:complaintId', [
         }
 
         if (!req.file) {
-            res.status(500).json({
+            res.status(200).json({
                 message: "Please Select an image File",
+                status: false
             })
         }
         else {
             let item = {
-                ImageName: req.file.filename
+                ImageName: req.file.filename,
+                status: true
             }
             var complaintId = req.params.complaintId;
             var complaintImage = req.file.filename;
@@ -713,11 +715,11 @@ router.post('/uploadTaskmateImage/:complaintId', [
 
 /**
  * @swagger
- * /complaints/transferComplaintsList/{complaintId}/{pageNo}:
+ * /taskmate/transferTasksList/{complaintId}/{pageNo}:
  *   get:
  *     tags:
- *       - Complaint
- *     description: Returns list of all transfer complaints
+ *       - Taskmate
+ *     description: Returns list of all transfer tasks
  *     produces:    
  *       - application/json
  *     parameters:
@@ -742,32 +744,32 @@ router.post('/uploadTaskmateImage/:complaintId', [
  *         description: Bad request
  */
 
-router.get("/transferComplaintsList/:complaintId/:pageNo", (req, res, next) => {
+router.get("/transferTasksList/:complaintId/:pageNo", (req, res, next) => {
     verifyToken(req, res, tokendata => {
         const limit = 10;
         const page = req.params.pageNo;
         var pageCount1 = 0;
         let cid = req.params.complaintId;
 
-        db.query(Complaints.getTransferComplaintListSQL(cid), (err1, data1) => {
+        db.query(Taskmate.getTransferTaskListSQL(cid), (err1, data1) => {
 
             if (data1) {
                 pageCount1 = data1.length;
 
-                db.query(Complaints.getTransferComplaintListSQL(cid, limit, page), (err, data) => {
+                db.query(Taskmate.getTransferTaskListSQL(cid, limit, page), (err, data) => {
                     if (!err) {
                         if (data && data.length > 0) {
                             res.status(200).json({
                                 "currentPage": page,
                                 "totalCount": pageCount1,
-                                "transferComplaintList": data,
-                                message: "Transfer Complaint List Found",
+                                "transferTaskList": data,
+                                message: "Transfer Task List Found",
                             });
                         } else {
                             res.status(200).json({
                                 "currentPage": page,
                                 "totalCount": pageCount1,
-                                "transferComplaintList": [],
+                                "transferTaskList": [],
                                 message: "No record found"
                             });
                         }
@@ -785,11 +787,11 @@ router.get("/transferComplaintsList/:complaintId/:pageNo", (req, res, next) => {
 
 /**
  * @swagger
- * /complaints/complaintTransferSearch:
+ * /taskmate/taskTransferSearch:
  *   get:
  *     tags:
- *       - Complaint  
- *     description: Returns List of Complaint Transfer
+ *       - Taskmate 
+ *     description: Returns List of Task Transfer
  *     produces:
  *       - application/json
  *     parameters:
@@ -814,7 +816,7 @@ router.get("/transferComplaintsList/:complaintId/:pageNo", (req, res, next) => {
  *         description: Bad request
  */
 
-router.get("/complaintTransferSearch/",[
+router.get("/taskTransferSearch/",[
     // validation rules start 
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
@@ -831,13 +833,13 @@ router.get("/complaintTransferSearch/",[
         let complaintId = req.query.complaintId;
         let keyword = req.query.keyword;
 
-        db.query(Complaints.getComplaintTransferSearch(complaintId,keyword), (err, data) => {
+        db.query(Taskmate.getTaskTransferSearch(complaintId,keyword), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({
                         status: true,
                         data:data,
-                        message: "Complaint Transfer List Found"
+                        message: "Task Transfer List Found"
                     });
                 } else {
                     res.status(200).json({
@@ -853,24 +855,24 @@ router.get("/complaintTransferSearch/",[
 /**
  * @swagger
  * definitions:
- *   TransferComplaint :
+ *   TransferTask :
  *     properties:
  *       fromUserIdFK :
- *                  type: integer
+ *                 type: integer
  *       toUserIdFK :
  *                 type: integer
  */
 
 /**
  * @swagger
- * /complaints/addTransferComplaint/{complaintId}:
+ * /taskmate/addTransferTask/{complaintId}:
  *   post:
  *     tags:
- *       - Complaint
- *     description: Add Transfer Complaint  
+ *       - Taskmate
+ *     description: Add Transfer Task  
  *     produces:
  *       - application/json
- *     summary: add transfer complaint.
+ *     summary: add transfer task.
  *     parameters:
  *       - name: Authorization
  *         description: token
@@ -880,8 +882,8 @@ router.get("/complaintTransferSearch/",[
  *         description: complaint id
  *         in: path
  *         required: true
- *       - name: Transfer Complaint Data
- *         description: Transfer Complaint Data from body
+ *       - name: Transfer Task Data
+ *         description: Transfer Task Data from body
  *         in: body
  *         required: true
  *     responses:
@@ -892,10 +894,10 @@ router.get("/complaintTransferSearch/",[
  *       400:
  *         description: Bad request
  *         schema:
- *           $ref: '#/definitions/TransferComplaint'
+ *           $ref: '#/definitions/TransferTask'
  */
 
-router.post('/addTransferComplaint/:complaintId', [
+router.post('/addTransferTask/:complaintId', [
     // validation rules start 
     check('fromUserIdFK').trim().custom((value, { req }) => {
         if (value < 0 || isNaN(value)) {
@@ -920,14 +922,14 @@ router.post('/addTransferComplaint/:complaintId', [
             return res.status(422).json({ errors: errors.array() });
         }
         let obj = req.body;
-        let transfer = new Complaints(obj);
+        let transfer = new Taskmate(obj);
         var complaintId = req.params.complaintId;
 
-        db.query(transfer.addTransferComplaintSQL(complaintId), (err, data) => {
+        db.query(transfer.addTransferTaskSQL(complaintId), (err, data) => {
 
             if (!err) {
                 res.status(200).json({
-                    message: "Transfer Complaint added successfully",
+                    message: "Transfer Task added successfully",
                     Id: data.insertId
                 });
             }
@@ -951,10 +953,10 @@ router.post('/addTransferComplaint/:complaintId', [
 
 /**
  * @swagger
- * /complaints/updatTransferStatus/{complaintId}:
+ * /taskmate/updatTransferStatus/{complaintId}:
  *   put:
  *     tags:
- *       - Complaint
+ *       - Taskmate
  *     description: Update Transfer Status By Complaint Id
  *     produces:
  *       - application/json
@@ -1006,7 +1008,7 @@ router.put("/updatTransferStatus/:complaintId", [
         // ....!  end send response of validation to client
 
         var cId = req.params.complaintId;
-        let transferstatus = new Complaints(req.body);
+        let transferstatus = new Taskmate(req.body);
 
         db.query(transferstatus.updateTransferStatusByIdSQL(cId), (err, data) => {
             if (!err) {
@@ -1030,11 +1032,11 @@ router.put("/updatTransferStatus/:complaintId", [
 
 /**
  * @swagger
- * /complaints/deleteTransferComplaint/{complaintId}:
+ * /taskmate/deleteTransferTask/{complaintId}:
  *   put:
  *     tags:
- *       - Complaint
- *     description: Delete Transfer Complaint data
+ *       - Taskmate
+ *     description: Delete Transfer Task data
  *     produces:
  *       - application/json
  *     parameters:
@@ -1056,21 +1058,21 @@ router.put("/updatTransferStatus/:complaintId", [
  *         description: Bad request
  */
 
-router.put("/deleteTransferComplaint/:complaintId", (req, res, next) => {
+router.put("/deleteTransferTask/:complaintId", (req, res, next) => {
     verifyToken(req, res, tokendata => {
         var cId = req.params.complaintId;
 
-        db.query(Complaints.deleteTransferComplaintByIdSQL(cId), (err, data) => {
+        db.query(Taskmate.deleteTransferTaskByIdSQL(cId), (err, data) => {
             if (!err) {
                 if (data && data.affectedRows > 0) {
                     res.status(200).json({
-                        message: "Transfer Complaint deleted successfully",
+                        message: "Transfer Task deleted successfully",
                         affectedRows: data.affectedRows
                     });
                 }
                 else {
                     res.status(400).json({
-                        message: "Transfer Complaint is not deleted"
+                        message: "Transfer Task is not deleted"
                     });
                 }
             }

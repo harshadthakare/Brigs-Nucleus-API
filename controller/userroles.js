@@ -2,7 +2,6 @@ const express = require("express");
 const db = require("../db/database");
 const UserRole = require("../model/UserRole");
 const { verifyToken } = require("../config/verifyJwtToken");
-
 const { check, validationResult } = require('express-validator');
 
 const router = express.Router();
@@ -75,7 +74,7 @@ router.get("/listOfUserRoles/:pageNo", (req, res, next) => {
                 });
             }
             else {
-                res.status(400).json({
+                res.status(200).json({
                     message: "Something went wrong...!!"
                 });
             }
@@ -125,7 +124,7 @@ router.get("/viewParticularUserRole/:userRoleId", (req, res, next) => {
                         userrole: data[0]
                     });
                 } else {
-                    res.status(404).json({
+                    res.status(200).json({
                         message: "UserRole Not found"
                     });
                 }

@@ -48,12 +48,12 @@ router.get("/departmentList", (req, res, next) => {
     verifyToken(req, res, tokendata => {
 
         db.query(Dept.getAllDeptSQL(tokendata.organizationIdFK), (err, data) => {
-            
+
             let allDepartments = data;
             if (!err) {
                 if (data && data.length > 0) {
 
-                    generateDeptArray(allDepartments,(result)=>{
+                    generateDeptArray(allDepartments, (result) => {
                         res.status(200).json({
                             "department": result,
                             message: "Department List found"
@@ -178,7 +178,6 @@ router.post("/addDepartment", [
         dept.organizationIdFK = tokendata.organizationIdFK;
 
         db.query(dept.addDeptSQL(), (err, data) => {
-        	console.log(err);
             if (!err) {
                 res.status(200).json({
                     message: "Department added successfully",
@@ -367,21 +366,21 @@ router.put("/deleteDepartment/:departmentId", (req, res, next) => {
 router.get("/selectDepartment", (req, res, next) => {
     verifyToken(req, res, tokendata => {
 
-                db.query(Dept.getDeptSQL(tokendata.organizationIdFK), (err, data) => {
-                    if (!err) {
-                        if (data && data.length > 0) {
+        db.query(Dept.getDeptSQL(tokendata.organizationIdFK), (err, data) => {
+            if (!err) {
+                if (data && data.length > 0) {
 
-                            res.status(200).json({
-                                department: data,
-                                message: "Department List Found",
-                            });
-                        } else {
-                            res.status(404).json({
-                                message: "Department List Not Found"
-                            });
-                        }
-                    }
-                });
+                    res.status(200).json({
+                        department: data,
+                        message: "Department List Found",
+                    });
+                } else {
+                    res.status(404).json({
+                        message: "Department List Not Found"
+                    });
+                }
+            }
+        });
     })
 });
 module.exports = router;

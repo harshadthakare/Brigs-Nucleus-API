@@ -7,7 +7,7 @@ class Dept {
 
     static getAllDeptSQL(organizationIdFK) {
         let sql = `SELECT departmentId,departmentTitle,parentId FROM department WHERE organizationIdFK = ${organizationIdFK} AND isDeleted = 0`;
-        return sql;               
+        return sql;
     }
 
     static getDeptByIdSQL(departmentId) {

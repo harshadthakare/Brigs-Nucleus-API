@@ -20,9 +20,6 @@ var storage = multer.diskStorage({
         else if (file.mimetype === 'image/png') {
             cb(null, 'image-' + Date.now() + '.png');
         }
-        else if (file.mimetype === 'image/PNG') {
-            cb(null, 'image-' + Date.now() + '.PNG');
-        }
         else if (file.mimetype === 'image/jpeg') {
             cb(null, 'image-' + Date.now() + '.jpeg');
         }
@@ -34,6 +31,9 @@ var storage = multer.diskStorage({
         }
         else if (file.mimetype === 'image/JPEG') {
             cb(null, 'image-' + Date.now() + '.JPEG');
+        }
+        else if (file.mimetype === 'image/PNG') {
+            cb(null, 'image-' + Date.now() + '.PNG');
         }
         else {
             return cb(new Error('Only png, jpeg, gif and jpg file types are allowed!'))
@@ -51,11 +51,20 @@ var storage1 = multer.diskStorage({
         if (file.mimetype === 'application/pdf') {
             cb1(null, 'document-' + Date.now() + '.pdf');
         }
+        else if (file.mimetype === 'application/pdf') {
+            cb1(null, 'document-' + Date.now() + '.PDF');
+        }
         else if (file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
             cb1(null, 'document-' + Date.now() + '.docx');
         }
+        else if (file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+            cb1(null, 'document-' + Date.now() + '.DOCX');
+        }
         else if (file.mimetype === 'application/msword') {
             cb1(null, 'document-' + Date.now() + '.doc');
+        }
+        else if (file.mimetype === 'application/msword') {
+            cb1(null, 'document-' + Date.now() + '.DOC');
         }
         else if (file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
             cb1(null, 'document-' + Date.now() + '.xlsx')
@@ -70,7 +79,7 @@ var storage1 = multer.diskStorage({
             cb1(null, 'document-' + Date.now() + '.XLS')
         }
         else {
-            return cb1(new Error('Only pdf, doc, docx, xlsx or xls file types are allowed!'))
+            return cb1(new Error('Only pdf, doc or docx, xls or xlsx file types are allowed!'))
         }
     }
 });
@@ -435,7 +444,7 @@ router.get("/viewParticularAsset/:assetId", (req, res, next) => {
                         message: "Asset found",
                     });
                 } else {
-                    res.status(200).json({
+                    res.status(404).json({
                         message: "Asset Not found"
                     });
                 }
@@ -543,8 +552,8 @@ router.post("/addAsset", [
         obj.organizationIdFK = tokendata.organizationIdFK;
         let asset = new Asset(obj);
 
-        db.query(asset.addAssetSQL(organizationIdFK), (err, data) => {
-            
+        db.query(asset.addAssetSQL(), (err, data) => {
+
             if (!err) {
                 let assetID = data.insertId
 
@@ -868,7 +877,7 @@ router.post('/uploadAssetImage', uploadImage.single('file'), (req, res, next) =>
  *     description: Upload User guide book with pdf format 
  *     produces:
  *       - application/json
- *     summary: Uploads a pdf,doc,docx,xlsx and xls file.
+ *     summary: Uploads a pdf file.
  *     consumes:
  *       - multipart/form-data
  *     parameters:
@@ -901,6 +910,7 @@ router.post('/uploadAssetDoc', uploadDoc.single('file'), (req, res, next) => {
         }
     })
 });
+
 /**
  * @swagger
  * /assets/selectInstallationLocationType:
@@ -937,7 +947,7 @@ router.get("/selectInstallationLocationType", (req, res, next) => {
                     });
                 }
                 else {
-                    res.status(404).json({
+                    res.status(200).json({
                         message: "Installation Location Type List Not Found"
                     });
                 }
@@ -981,7 +991,7 @@ router.get("/selectDurationType", (req, res, next) => {
                     });
                 }
                 else {
-                    res.status(404).json({
+                    res.status(200).json({
                         message: "Duration Type List Not Found"
                     });
                 }
@@ -1025,7 +1035,7 @@ router.get("/selectSupplier", (req, res, next) => {
                     });
                 }
                 else {
-                    res.status(404).json({
+                    res.status(200).json({
                         message: "Supplier List Not Found"
                     });
                 }
@@ -1069,7 +1079,7 @@ router.get("/selectManufacturer", (req, res, next) => {
                     });
                 }
                 else {
-                    res.status(404).json({
+                    res.status(200).json({
                         message: "Manufacturer List Not Found"
                     });
                 }
@@ -1113,7 +1123,7 @@ router.get("/selectAsset", (req, res, next) => {
                     });
                 }
                 else {
-                    res.status(404).json({
+                    res.status(200).json({
                         message: "Asset List Not Found"
                     });
                 }
@@ -1121,7 +1131,6 @@ router.get("/selectAsset", (req, res, next) => {
         });
     });
 });
-
 /**
  * @swagger
  * /assets/assetQrCodeDetailsList/{categoryId}:
@@ -1150,9 +1159,9 @@ router.get("/selectAsset", (req, res, next) => {
  */
 router.get("/assetQrCodeDetailsList/:categoryId", (req, res, next) => {
     verifyToken(req, res, tokendata => {
-        
+
         let categoryId = req.params.categoryId;
-        
+
         db.query(Asset.getAssetCodeDetailsByCategory(tokendata.organizationIdFK, categoryId), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {

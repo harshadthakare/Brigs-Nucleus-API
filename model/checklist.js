@@ -1,12 +1,12 @@
-class Checklist{
-    constructor(obj){
+class Checklist {
+    constructor(obj) {
         obj && Object.assign(this, obj)
     }
 
-    static getAllChecklistsSQL(organizationIdFK,limit=0, start=0) {
-        let startLimit = limit*start;
+    static getAllChecklistsSQL(organizationIdFK, limit = 0, start = 0) {
+        let startLimit = limit * start;
 
-        let limitString = (limit>0) ? `LIMIT ${startLimit}, ${limit}`: '';
+        let limitString = (limit > 0) ? `LIMIT ${startLimit}, ${limit}` : '';
 
         let sql = `SELECT c.checklistId,c.title,c1.title as categoryTitle,o.organizationName,c.checkingDuration,d.title as durationType FROM checklist c
                    JOIN category c1 ON c.categoryIdFK = c1.categoryId
@@ -25,7 +25,7 @@ class Checklist{
         return sql;
     }
 
-    addChecklistSQL()    {
+    addChecklistSQL() {
         let sql = `INSERT into checklist (title,organizationIdFK,categoryIdFK,checkingDuration,durationTypeIdFK) 
                     VALUES ('${this.title}',${this.organizationIdFK},${this.categoryId},${this.checkingDuration},${this.durationTypeIdFK})`;
         return sql;
@@ -48,7 +48,7 @@ class Checklist{
         WHERE checklistId = ${checklistId}`;
         return sql;
     }
-    
+
     static checkChecklistId(checklistId) {
         let sql = `SELECT checklistId FROM checklist WHERE checklistId = ${checklistId} AND isDeleted = 0`;
         return sql;

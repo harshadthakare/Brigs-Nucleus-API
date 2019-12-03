@@ -20,6 +20,8 @@ const document = require("./controller/document");
 const questions = require("./controller/questions");
 const complaints = require("./controller/complaints");
 const taskmate = require("./controller/taskmate");
+const organization = require("./controller/organization");
+const admin = require("./controller/admin");
 
 var swaggerJSDoc = require('swagger-jsdoc');
 const app = express();
@@ -46,7 +48,7 @@ var swaggerDefinition = {
 // initialize swaggerJSDoc
 var swaggerSpec = swaggerJSDoc(options);
 
-// route for swagger.json
+// route for swagger.jsons
 app.get('/swagger.json', function(req, res) {
     res.setHeader('Content-Type', 'application/json');
     res.send(swaggerSpec);
@@ -62,6 +64,9 @@ app.use(express.static(assetImageDir));
 
 var userGuideDir = require('path').join('./uploads/UserGuide');
 app.use(express.static(userGuideDir));
+
+var assetQrDir = require('path').join('./uploads/qrCode');
+app.use(express.static(assetQrDir));
 
 var alertImageDir = require('path').join('./uploads/AlertImage');
 app.use(express.static(alertImageDir));
@@ -95,6 +100,8 @@ app.use("/document",document);
 app.use("/questions",questions);
 app.use("/complaints",complaints);
 app.use("/taskmate",taskmate);
+app.use("/organization",organization);
+app.use("/admin",admin);
  
 //if we are here then the specified request is not found
 app.use((req,res,next)=> {

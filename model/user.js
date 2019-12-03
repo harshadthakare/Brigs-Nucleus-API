@@ -1,21 +1,21 @@
-const {BASE_URL} = require("../config/constants");
+const { BASE_URL } = require("../config/constants");
 class User {
-    
+
     constructor(obj) {
-      obj && Object.assign(this,obj)
+        obj && Object.assign(this, obj)
     }
 
-    static getAllUserSQL(deptId, limit=0, start=0) {
-        let startLimit = limit*start;
+    static getAllUserSQL(deptId, limit = 0, start = 0) {
+        let startLimit = limit * start;
 
-        let limitString = (limit>0) ? `LIMIT ${startLimit}, ${limit}`: '';    
-        
+        let limitString = (limit > 0) ? `LIMIT ${startLimit}, ${limit}` : '';
+
         let sql = `SELECT u.userId,u.firstName,u.lastName,u.userRoleIdFK,ur.title as userRole,CONCAT('${BASE_URL}','',u.profileImage) as profileImage,u.departmentIdFK,d.departmentTitle,
                    u.mobileNumber,u.emailId,u.password FROM user u 
                    LEFT JOIN department d ON u.departmentIdFK = d.departmentId 
                    JOIN userrole ur ON u.userRoleIdFK = ur.userRoleId
                    WHERE u.departmentIdFK = ${deptId} AND u.isDeleted = 0 ORDER BY u.createdOn DESC ${limitString}`
-        return sql;       
+        return sql;
     }
 
     static getAllUserSearchSQL(departmentId, keyword) {
@@ -24,19 +24,19 @@ class User {
                    LEFT JOIN department d ON u.departmentIdFK = d.departmentId 
                    JOIN userrole ur ON u.userRoleIdFK = ur.userRoleId
                    WHERE u.departmentIdFK = ${departmentId} AND CONCAT(u.firstName, '' , u.lastName) LIKE '%${keyword}%' AND u.isDeleted = 0`;
-        return sql;       
+        return sql;
     }
-    
+
     static getUserByIdSQL(userId) {
         let sql = `SELECT u.userId,CONCAT(u.firstName ,' ', u.lastName)as userName,u.userRoleIdFK,ur.title,CONCAT('${BASE_URL}','',u.profileImage) as profileImage,d.departmentTitle,u.mobileNumber,u.emailId FROM user u 
                    LEFT JOIN department d ON u.departmentIdFK = d.departmentId
                    JOIN userrole ur ON u.userRoleIdFK = ur.userRoleId
                    WHERE u.isDeleted = 0 AND userId = ${userId}`;
-        return sql;           
+        return sql;
     }
-    
+
     addUserSQL() {
-            let sql = `INSERT INTO user(firstName,
+        let sql = `INSERT INTO user(firstName,
             lastName,
             userRoleIdFK,
             profileImage,
@@ -52,11 +52,11 @@ class User {
                     '${this.mobileNumber}',
                     '${this.emailId}',
                     '${this.password}')`;
-            return sql;           
-    } 
+        return sql;
+    }
 
     updateUserByIdSQL(userId) {
-            let sql = `UPDATE user SET
+        let sql = `UPDATE user SET
             firstName = '${this.firstName}',
             lastName = '${this.lastName}',
             userRoleIdFK = ${this.userRoleIdFK},
@@ -67,19 +67,19 @@ class User {
             password ='${this.password}' 
             
             WHERE userId = ${userId}`
-            return sql;
+        return sql;
     }
 
     static checkUserId(userId) {
         let sql = `SELECT userId FROM user WHERE userId = ${userId} AND isDeleted = 0`;
         return sql;
     }
-             
+
     static deleteUserByIdSQL(userId) {
-            let sql = `UPDATE user SET  
+        let sql = `UPDATE user SET  
             isDeleted  = 1 
             WHERE userId = ${userId}`;
-            return sql;
+        return sql;
     }
 
     static getUserRoleList(organizationIdFK) {

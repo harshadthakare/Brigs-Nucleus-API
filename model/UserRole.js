@@ -4,10 +4,10 @@ class UserRole {
         obj && Object.assign(this, obj)
     }
 
-    static getAllUserRolesSQL(organizationIdFK,limit=0, start=0) {
-        let startLimit = limit*start;
+    static getAllUserRolesSQL(organizationIdFK, limit = 0, start = 0) {
+        let startLimit = limit * start;
 
-        let limitString = (limit>0) ? `LIMIT ${startLimit}, ${limit}`: '';
+        let limitString = (limit > 0) ? `LIMIT ${startLimit}, ${limit}` : '';
 
         let sql = `SELECT u.userRoleId,u.title,o.organizationName FROM userrole u 
                    JOIN organization o ON u.organizationIdFK = o.organizationId WHERE u.organizationIdFK = ${organizationIdFK} AND u.isDeleted = 0 
