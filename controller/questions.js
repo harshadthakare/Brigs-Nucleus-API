@@ -982,7 +982,7 @@ router.get("/checklistQuestionsWithoutPagination/:checklistId", (req, res, next)
     verifyToken(req, res, tokendata => {
 
         let checklistId = req.params.checklistId;
-        
+
         db.query(Question.getChecklistQuesWithoutPaginationSQL(checklistId), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {

@@ -114,7 +114,7 @@ router.get("/complaintsList/:pageNo", (req, res, next) => {
                                     res.status(200).json({
                                         "currentPage": page,
                                         "totalCount": pageCount1,
-                                        "totalComplaints": totalComplaints,
+                                        "totalComplaints":totalComplaints,
                                         "complaintList": data,
                                         message: "Complaint List found",
                                     });
@@ -172,11 +172,11 @@ router.get("/complaintsList/:pageNo", (req, res, next) => {
  *         description: Bad request
  */
 
-router.get("/complaintSearch/", [
+router.get("/complaintSearch/",[
     // validation rules start 
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
-
+     
     verifyToken(req, res, tokendata => {
 
         // send response of validation to client
@@ -193,7 +193,7 @@ router.get("/complaintSearch/", [
                 if (data && data.length > 0) {
                     res.status(200).json({
                         status: true,
-                        data: data,
+                        data:data,
                         message: "Complaint Found"
                     });
                 } else {
@@ -359,11 +359,11 @@ router.get("/complaintsTrackList/:complaintId/:pageNo", (req, res, next) => {
  *         description: Bad request
  */
 
-router.get("/complaintTrackSearch/", [
+router.get("/complaintTrackSearch/",[
     // validation rules start 
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
-
+     
     verifyToken(req, res, tokendata => {
 
         // send response of validation to client
@@ -376,12 +376,12 @@ router.get("/complaintTrackSearch/", [
         let complaintId = req.query.complaintId;
         let keyword = req.query.keyword;
 
-        db.query(Complaints.getComplaintTrackSearch(complaintId, keyword), (err, data) => {
+        db.query(Complaints.getComplaintTrackSearch(complaintId,keyword), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({
                         status: true,
-                        data: data,
+                        data:data,
                         message: "Complaint Track List Found"
                     });
                 } else {
@@ -474,7 +474,9 @@ router.post("/addComplaint", [
                                     if (index == users.length - 1 && !err) {
                                         if (data1) {
                                             res.status(200).json({
-                                                message: "Complaint details added successfully"
+                                                message: "Complaint details added successfully",
+                                                status: true,
+                                                complaintId: data.insertId
                                             });
                                         }
                                     }
@@ -825,11 +827,11 @@ router.get("/transferComplaintsList/:complaintId/:pageNo", (req, res, next) => {
  *         description: Bad request
  */
 
-router.get("/complaintTransferSearch/", [
+router.get("/complaintTransferSearch/",[
     // validation rules start 
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
-
+     
     verifyToken(req, res, tokendata => {
 
         // send response of validation to client
@@ -842,12 +844,12 @@ router.get("/complaintTransferSearch/", [
         let complaintId = req.query.complaintId;
         let keyword = req.query.keyword;
 
-        db.query(Complaints.getComplaintTransferSearch(complaintId, keyword), (err, data) => {
+        db.query(Complaints.getComplaintTransferSearch(complaintId,keyword), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({
                         status: true,
-                        data: data,
+                        data:data,
                         message: "Complaint Transfer List Found"
                     });
                 } else {
@@ -989,12 +991,14 @@ router.post('/addTransferComplaint/:complaintId', [
             if (!err) {
                 res.status(200).json({
                     message: "Transfer Complaint added successfully",
-                    Id: data.insertId
+                    Id: data.insertId,
+                    status: true
                 });
             }
             else {
                 res.status(400).json({
-                    message: "Something went wrong, Please try again"
+                    message: "Something went wrong, Please try again",
+                    status: false
                 });
             }
         });
@@ -1222,7 +1226,7 @@ router.get("/selectAssets", (req, res, next) => {
                     });
                 }
                 else {
-                    res.status(404).json({
+                    res.status(200).json({
                         message: "Asset List Not Found"
                     });
                 }

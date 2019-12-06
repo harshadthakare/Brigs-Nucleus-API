@@ -140,11 +140,11 @@ router.get("/listOfDocumentsByAssetId/:assetId/:pageNo", (req, res, next) => {
         var pageCount1 = 0;
         let aId = req.params.assetId;
 
-        db.query(Document.getAllDocumentsByAssetIdSQL(aId), (err1, data1) => {
+        db.query(Document.getAllDocumentsByAssetIdSQL(tokendata.organizationIdFK, aId), (err1, data1) => {
             if (data1) {
                 pageCount1 = data1.length;
 
-                db.query(Document.getAllDocumentsByAssetIdSQL(aId, limit, page), (err, data) => {
+                db.query(Document.getAllDocumentsByAssetIdSQL(tokendata.organizationIdFK, aId, limit, page), (err, data) => {
                     if (!err) {
                         if (data && data.length > 0) {
                             res.status(200).json({
@@ -211,11 +211,11 @@ router.get("/listOfDocumentsByCategoryId/:categoryId/:pageNo", (req, res, next) 
         var pageCount1 = 0;
         let cId = req.params.categoryId;
 
-        db.query(Document.getAllDocumentsByCategoryIdSQL(cId), (err1, data1) => {
+        db.query(Document.getAllDocumentsByCategoryIdSQL(tokendata.organizationIdFK, cId), (err1, data1) => {
             if (data1) {
                 pageCount1 = data1.length;
 
-                db.query(Document.getAllDocumentsByCategoryIdSQL(cId, limit, page), (err, data) => {
+                db.query(Document.getAllDocumentsByCategoryIdSQL(tokendata.organizationIdFK, cId, limit, page), (err, data) => {
                     if (!err) {
                         if (data && data.length > 0) {
                             res.status(200).json({
@@ -277,11 +277,11 @@ router.get("/listOfDocuments/:pageNo", (req, res, next) => {
         const page = req.params.pageNo;
         var pageCount1 = 0;
 
-        db.query(Document.getAllDocuments(), (err1, data1) => {
+        db.query(Document.getAllDocuments(tokendata.organizationIdFK), (err1, data1) => {
             if (data1) {
                 pageCount1 = data1.length;
 
-                db.query(Document.getAllDocuments(limit, page), (err, data) => {
+                db.query(Document.getAllDocuments(tokendata.organizationIdFK, limit, page), (err, data) => {
                     if (!err) {
                         if (data && data.length > 0) {
                             res.status(200).json({
@@ -353,7 +353,7 @@ router.get("/documentSearch/", [
 
         let keyword = req.query.keyword;
 
-        db.query(Document.getAllDocumentSearchSQL(keyword), (err, data) => {
+        db.query(Document.getAllDocumentSearchSQL(tokendata.organizationIdFK, keyword), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({
@@ -420,7 +420,7 @@ router.get("/documentSearchByCategoryId/", [
         let categoryId = req.query.categoryId;
         let keyword = req.query.keyword;
 
-        db.query(Document.getAllDocumentSearchByCategory(categoryId, keyword), (err, data) => {
+        db.query(Document.getAllDocumentSearchByCategory(tokendata.organizationIdFK, categoryId, keyword), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({
@@ -487,7 +487,7 @@ router.get("/documentSearchByAssetId/", [
         let assetId = req.query.assetId;
         let keyword = req.query.keyword;
 
-        db.query(Document.getAllDocumentSearchByAsset(assetId, keyword), (err, data) => {
+        db.query(Document.getAllDocumentSearchByAsset(tokendata.organizationIdFK, assetId, keyword), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({
@@ -614,6 +614,7 @@ router.post("/addDocument", [
         let obj = req.body;
         let documentCode = new Date().getTime()
         obj.documentCode = documentCode;
+        obj.organizationIdFK = tokendata.organizationIdFK;
         let document = new Document(obj);
 
         db.query(document.addDocumentSQL(), (err, data) => {
@@ -678,6 +679,7 @@ router.post("/addDocumate", [
         let obj = req.body;
         let documentCode = new Date().getTime()
         obj.documentCode = documentCode;
+        obj.organizationIdFK = tokendata.organizationIdFK;
         let document = new Document(obj);
 
         db.query(document.addDocumateSQL(), (err, data) => {

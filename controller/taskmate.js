@@ -97,22 +97,22 @@ router.get("/taskmateList/:pageNo", (req, res, next) => {
         const page = req.params.pageNo;
         var pageCount1 = 0;
 
-        db.query(Taskmate.getTaskCount(), (err2, data2) => {
+        db.query(Taskmate.getTaskCount(tokendata.organizationIdFK), (err2, data2) => {
             let totalTasks = data2[0].totalTasks;
 
             if (data2) {
-                db.query(Taskmate.getAllTasksSQL(), (err1, data1) => {
+                db.query(Taskmate.getAllTasksSQL(tokendata.organizationIdFK), (err1, data1) => {
 
                     if (data1) {
                         pageCount1 = data1.length;
 
-                        db.query(Taskmate.getAllTasksSQL(limit, page), (err, data) => {
+                        db.query(Taskmate.getAllTasksSQL(tokendata.organizationIdFK, limit, page), (err, data) => {
                             if (!err) {
                                 if (data && data.length > 0) {
                                     res.status(200).json({
                                         "currentPage": page,
                                         "totalCount": pageCount1,
-                                        "totalTasks":totalTasks,
+                                        "totalTasks": totalTasks,
                                         "tasksList": data,
                                         message: "Task List found",
                                     });
@@ -120,6 +120,7 @@ router.get("/taskmateList/:pageNo", (req, res, next) => {
                                     res.status(200).json({
                                         "currentPage": page,
                                         "totalCount": pageCount1,
+                                        "totalTasks": 0,
                                         "tasksList": [],
                                         message: "No record found"
                                     });
@@ -170,11 +171,11 @@ router.get("/taskmateList/:pageNo", (req, res, next) => {
  *         description: Bad request
  */
 
-router.get("/taskSearch/",[
+router.get("/taskSearch/", [
     // validation rules start 
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
-     
+
     verifyToken(req, res, tokendata => {
 
         // send response of validation to client
@@ -186,12 +187,12 @@ router.get("/taskSearch/",[
 
         let keyword = req.query.keyword;
 
-        db.query(Taskmate.getAllTasksSearchSQL(keyword), (err, data) => {
+        db.query(Taskmate.getAllTasksSearchSQL(tokendata.organizationIdFK, keyword), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({
                         status: true,
-                        data:data,
+                        data: data,
                         message: "Task Found"
                     });
                 } else {
@@ -245,7 +246,7 @@ router.get("/viewParticularTask/:complaintId", (req, res, next) => {
                         task: data
                     });
                 } else {
-                    res.status(404).json({
+                    res.status(200).json({
                         message: "Task Not Found"
                     });
                 }
@@ -357,11 +358,11 @@ router.get("/tasksTrackList/:complaintId/:pageNo", (req, res, next) => {
  *         description: Bad request
  */
 
-router.get("/taskTrackSearch/",[
+router.get("/taskTrackSearch/", [
     // validation rules start 
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
-     
+
     verifyToken(req, res, tokendata => {
 
         // send response of validation to client
@@ -374,12 +375,12 @@ router.get("/taskTrackSearch/",[
         let complaintId = req.query.complaintId;
         let keyword = req.query.keyword;
 
-        db.query(Taskmate.getTaskTrackSearch(complaintId,keyword), (err, data) => {
+        db.query(Taskmate.getTaskTrackSearch(complaintId, keyword), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({
                         status: true,
-                        data:data,
+                        data: data,
                         message: "Task Track List Found"
                     });
                 } else {
@@ -442,6 +443,7 @@ router.post("/addTaskmate", [
         }
         // ....!  end send response of validation to client
         let obj = req.body;
+        obj.organizationIdFK = tokendata.organizationIdFK;
         let taskmate = new Taskmate(obj);
         let users = req.body.users;
         let user = new Taskmate(req.body);
@@ -465,7 +467,9 @@ router.post("/addTaskmate", [
                                     if (index == users.length - 1 && !err) {
                                         if (data1) {
                                             res.status(200).json({
-                                                message: "Taskmate details added successfully"
+                                                message: "Taskmate details added successfully",
+                                                status: true,
+                                                complaintId: data.insertId
                                             });
                                         }
                                     }
@@ -626,11 +630,13 @@ router.put("/updateTaskStatus/:complaintId", [
                 if (data && data.affectedRows > 0) {
                     res.status(200).json({
                         message: "Task status updated successfully",
+                        status: true,
                         affectedRows: data.affectedRows
                     })
                 } else {
                     res.status(400).json({
-                        message: "Something went wrong, Please try again"
+                        message: "Something went wrong, Please try again",
+                        status: false
                     });
                 }
             } else {
@@ -816,11 +822,11 @@ router.get("/transferTasksList/:complaintId/:pageNo", (req, res, next) => {
  *         description: Bad request
  */
 
-router.get("/taskTransferSearch/",[
+router.get("/taskTransferSearch/", [
     // validation rules start 
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
-     
+
     verifyToken(req, res, tokendata => {
 
         // send response of validation to client
@@ -833,12 +839,12 @@ router.get("/taskTransferSearch/",[
         let complaintId = req.query.complaintId;
         let keyword = req.query.keyword;
 
-        db.query(Taskmate.getTaskTransferSearch(complaintId,keyword), (err, data) => {
+        db.query(Taskmate.getTaskTransferSearch(complaintId, keyword), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({
                         status: true,
-                        data:data,
+                        data: data,
                         message: "Task Transfer List Found"
                     });
                 } else {
@@ -930,12 +936,14 @@ router.post('/addTransferTask/:complaintId', [
             if (!err) {
                 res.status(200).json({
                     message: "Transfer Task added successfully",
-                    Id: data.insertId
+                    Id: data.insertId,
+                    status: true
                 });
             }
             else {
                 res.status(400).json({
-                    message: "Something went wrong, Please try again"
+                    message: "Something went wrong, Please try again",
+                    status: false
                 });
             }
         });
@@ -1016,11 +1024,13 @@ router.put("/updatTransferStatus/:complaintId", [
                 if (data && data.affectedRows > 0) {
                     res.status(200).json({
                         message: `Transfer status updated successfully`,
-                        affectedRows: data.affectedRows
+                        affectedRows: data.affectedRows,
+                        status: true
                     })
                 } else {
                     res.status(400).json({
-                        message: "Something went wrong, Please try again"
+                        message: "Something went wrong, Please try again",
+                        status: false
                     });
                 }
             } else {

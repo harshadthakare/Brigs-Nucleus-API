@@ -7,13 +7,13 @@ class Dashboard {
 
     static getAllCounts(organizationIdFK) {
         let sql = `SELECT COUNT(a.assetId) AS totalAssetMate,
-        (SELECT COUNT(documentId) AS totalDocuMate FROM document where isDeleted = 0) AS totalDocuMate,
-        (SELECT COUNT(complaintId) AS totalTaskMate FROM complaint where typeOfComplaintFK = 1 AND isDeleted = 0) AS totalTaskMate,
-        (SELECT COUNT(complaintId) AS totalComplaints FROM complaint where typeOfComplaintFK = 2 AND isDeleted = 0) AS totalComplaints
-        FROM asset a 
-        JOIN assetcatrelation a1 ON a1.assetIdFK = a.assetId 
-        JOIN category c ON a1.categoryIdFK = c.categoryId 
-        WHERE a.organizationIdFK = ${organizationIdFK} AND a.isDeleted = 0 AND c.isDeleted = 0`;
+                    (SELECT COUNT(documentId) AS totalDocuMate FROM document where organizationIdFK = ${organizationIdFK} AND isDeleted = 0) AS totalDocuMate,
+                    (SELECT COUNT(complaintId) AS totalTaskMate FROM complaint where typeOfComplaintFK = 1 AND isDeleted = 0) AS totalTaskMate,
+                    (SELECT COUNT(complaintId) AS totalComplaints FROM complaint where typeOfComplaintFK = 2 AND isDeleted = 0) AS totalComplaints
+                    FROM asset a 
+                    JOIN assetcatrelation a1 ON a1.assetIdFK = a.assetId 
+                    JOIN category c ON a1.categoryIdFK = c.categoryId 
+                    WHERE a.organizationIdFK = ${organizationIdFK} AND a.isDeleted = 0 AND c.isDeleted = 0`;
         return sql;
     }
 

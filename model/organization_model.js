@@ -9,33 +9,55 @@ class Organization {
 
     let limitString = (limit > 0) ? `LIMIT ${startLimit}, ${limit}` : '';
 
-    let sql = `SELECT organizationId,organizationName,description FROM organization
-                     WHERE isDeleted = 0 ORDER BY createdOn DESC ${limitString}`;
+    let sql = `SELECT organizationId,organizationName,organizationCode,description,
+               CASE
+                   WHEN organizationId = 1 IS NOT NULL THEN 
+                    (SELECT COUNT(assetId) as totalAssets FROM asset WHERE organizationIdFK = organizationId AND isDeleted = 0)
+                    ELSE 0 
+                   END as totalAssets,
+               CASE
+                   WHEN organizationId = 1 IS NOT NULL THEN 
+                    (SELECT COUNT(adminId) as totalAdmins FROM admin WHERE organizationIdFK = organizationId AND isDeleted = 0)
+                    ELSE 0
+                   END as totalAdmins
+               FROM organization WHERE isDeleted = 0 ORDER BY createdOn DESC ${limitString}`;
     return sql;
   }
 
-  static getAllOrganizationsSearchSQL(keyword) {
-    let sql = `SELECT organizationId,organizationName,description FROM organization WHERE organizationName LIKE '%${keyword}%' AND isDeleted = 0`;
+  static getAllOrganizationsSearchSQL(organizationId, keyword) {
+    let sql = `SELECT organizationId,organizationName,organizationCode,description,
+               CASE
+                   WHEN organizationId = ${organizationId} IS NOT NULL THEN 
+                      (SELECT COUNT(assetId) as totalAssets FROM asset WHERE organizationIdFK = organizationId AND isDeleted = 0)
+                      ELSE 0 
+               END as totalAssets,
+               CASE
+               WHEN organizationId = ${organizationId} IS NOT NULL THEN 
+                      (SELECT COUNT(adminId) as totalAdmins FROM admin WHERE organizationIdFK = organizationId AND isDeleted = 0)
+                      ELSE 0
+               END as totalAdmins
+               FROM organization WHERE organizationName LIKE '%${keyword}%' AND isDeleted = 0`;
     return sql;
   }
 
   static getOrganizationByIdSQL(organizationId) {
-    let sql = `SELECT organizationId,organizationName,description FROM organization  
+    let sql = `SELECT organizationId,organizationName,organizationCode,description FROM organization  
                    WHERE organizationId = ${organizationId} AND isDeleted = 0`;
     return sql;
   }
 
   addOrganizationSQL() {
-    let sql = `INSERT INTO organization (organizationName,description)
-                 values ('${this.organizationName}', 
-                         '${this.description}')`;
+    let sql = `INSERT INTO organization (organizationName,organizationCode,description)
+                 values ('${this.organizationName}',
+                         '${this.organizationCode}',  
+                         "${this.description}")`;
     return sql;
   }
 
   updateOrganizationSQL(organizationId) {
     let sql = `UPDATE organization 
                   SET organizationName = '${this.organizationName}',
-                      description     =  '${this.description}'
+                      description     =  "${this.description}"
                       WHERE organizationId = ${organizationId}`;
     return sql;
   }
@@ -56,7 +78,7 @@ class Organization {
   }
 
   static getOrganizationsCountSQL(organizationId) {
-    let sql = `SELECT organizationId,organizationName,
+    let sql = `SELECT organizationId,organizationName,organizationCode,description,
                  CASE
                  WHEN organizationId = ${organizationId} IS NOT NULL THEN 
                                    (SELECT COUNT(assetId) as totalAssets FROM asset WHERE organizationIdFK = organizationId AND isDeleted = 0)
@@ -70,5 +92,16 @@ class Organization {
                  FROM organization WHERE isDeleted = 0`;
     return sql;
   }
+
+  static getSuperAdminByAuthSQL() {
+    let sql = `SELECT superAdminId,firstName,lastName,mobileNumber,emailId FROM superadmin`;
+    return sql;
+  }
+
+  static getOrganizationNameByIdSQL(organizationId) {
+    let sql = `SELECT organizationId,organizationName FROM organization WHERE organizationId = ${organizationId}`;
+    return sql;
+  }
+
 }
 module.exports = Organization;

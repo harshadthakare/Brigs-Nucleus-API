@@ -375,7 +375,7 @@ router.get("/selectDepartment", (req, res, next) => {
                         message: "Department List Found",
                     });
                 } else {
-                    res.status(404).json({
+                    res.status(200).json({
                         message: "Department List Not Found"
                     });
                 }

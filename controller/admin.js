@@ -210,11 +210,13 @@ router.post("/addAdmin", [
             if (!err) {
                 res.status(200).json({
                     message: "Admin added successfully",
+                    status: true,
                     Id: data.insertId
                 });
             } else {
                 res.status(400).json({
-                    message: "Something went wrong, Please try again"
+                    message: "Something went wrong, Please try again",
+                    status: false
                 });
             }
         });
@@ -290,11 +292,13 @@ router.put("/updateAdmin/:adminId", [
                         if (data && data.affectedRows > 0) {
                             res.status(200).json({
                                 message: "Admin updated successfully",
+                                status: true,
                                 affectedRows: data.affectedRows
                             })
                         } else {
                             res.status(400).json({
-                                message: "Something went wrong, Please try again"
+                                message: "Something went wrong, Please try again",
+                                status: false
                             });
                         }
                     } else {

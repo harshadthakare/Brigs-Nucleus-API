@@ -9,7 +9,7 @@ class Admin {
 
         let limitString = (limit > 0) ? `LIMIT ${startLimit}, ${limit}` : '';
 
-        let sql = `SELECT a.adminId,CONCAT(a.firstName ,' ', a.lastName)as adminName,o.organizationName,a.mobileNumber,a.emailId,a.password FROM admin a 
+        let sql = `SELECT a.adminId,CONCAT(a.firstName ,' ', a.lastName)as adminName,o.organizationName,a.mobileNumber,a.emailId,a.password,a.firstName,a.lastName,a.organizationIdFK FROM admin a 
         LEFT JOIN organization o ON a.organizationIdFK = o.organizationId 
         WHERE a.isDeleted = 0 ORDER BY a.createdOn DESC ${limitString}`;
         return sql;

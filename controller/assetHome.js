@@ -32,11 +32,13 @@ router.get("/allRootCategories", (req, res, next) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({
+                        status: true,
                         "rootCategory": data,
                         message: "Root Category List Found"
                     });
                 } else {
-                    res.status(404).json({
+                    res.status(200).json({
+                        status: false,
                         message: "Root Category List Not Found"
                     });
                 }

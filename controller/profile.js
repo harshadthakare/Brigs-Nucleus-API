@@ -99,7 +99,7 @@ router.post("/changepassword", (req, res, next) => {
         db.query(Profile.getPerAdminData(password), (err, data) => {
             if (data.length > 0) {
 
-                let aId = data[0].adminId;
+                let aId = tokendata.adminId;
                 db.query(Profile.updatePasswordById(newPassword, aId, password), (err, data) => {
                     if (!err) {
                         if (data.changedRows == 1) {

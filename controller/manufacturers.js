@@ -110,7 +110,6 @@ router.get("/listOfManufacturer/:pageNo", (req, res, next) => {
 router.get("/viewParticularManufacturer/:manufacturerId", (req, res, next) => {
     verifyToken(req, res, tokendata => {
         let mid = req.params.manufacturerId;
-
         db.query(Manufacturer.getManufacturerByIdSQL(mid), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {

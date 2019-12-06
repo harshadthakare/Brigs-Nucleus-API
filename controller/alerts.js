@@ -38,17 +38,17 @@ router.get("/AlertList/:pageNo", (req, res, next) => {
         const page = req.params.pageNo;
         var pageCount1 = 0;
 
-        db.query(Alerts.getAlertCount(), (err2, data2) => {
+        db.query(Alerts.getAlertCount(tokendata.organizationIdFK), (err2, data2) => {
             let totalAlerts = data2[0].totalAlerts;
 
             if (data2) {
 
-                db.query(Alerts.getAllAlerts(), (err1, data1) => {
+                db.query(Alerts.getAllAlerts(tokendata.organizationIdFK), (err1, data1) => {
 
                     if (data1) {
                         pageCount1 = data1.length;
 
-                        db.query(Alerts.getAllAlerts(limit, page), (err, data) => {
+                        db.query(Alerts.getAllAlerts(tokendata.organizationIdFK, limit, page), (err, data) => {
                             if (!err) {
                                 if (data && data.length > 0) {
                                     res.status(200).json({
@@ -62,6 +62,7 @@ router.get("/AlertList/:pageNo", (req, res, next) => {
                                     res.status(200).json({
                                         "currentPage": page,
                                         "totalCount": pageCount1,
+                                        "totalAlerts": 0,
                                         "alert": [],
                                         message: "No record found"
                                     });
@@ -128,7 +129,7 @@ router.get("/alertSearch/", [
 
         let keyword = req.query.keyword;
 
-        db.query(Alerts.getAllAlertSearchSQL(keyword), (err, data) => {
+        db.query(Alerts.getAllAlertSearchSQL(tokendata.organizationIdFK, keyword), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({

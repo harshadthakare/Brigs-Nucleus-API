@@ -2,6 +2,7 @@ const express = require("express");
 const db = require("../db/database");
 const UserAssign = require("../model/userCatAssign_model");
 const { verifyToken } = require("../config/verifyJwtToken");
+
 const { check, validationResult } = require('express-validator');
 
 const router = express.Router();
@@ -225,7 +226,7 @@ router.get("/userAssignSearchByCategoryId/", [
         let categoryId = req.query.categoryId;
         let keyword = req.query.keyword;
 
-        db.query(UserAssign.getAllAssignedUsersSearchByCategory(categoryId,keyword), (err, data) => {
+        db.query(UserAssign.getAllAssignedUsersSearchByCategory(categoryId, keyword), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({
@@ -292,7 +293,7 @@ router.get("/userAssignSearchByAssetId/", [
         let assetId = req.query.assetId;
         let keyword = req.query.keyword;
 
-        db.query(UserAssign.getAllAssignedUsersSearchByAsset(assetId,keyword), (err, data) => {
+        db.query(UserAssign.getAllAssignedUsersSearchByAsset(assetId, keyword), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({

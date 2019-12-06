@@ -11,8 +11,8 @@ class Complaints {
     }
 
     addComplaintSQL(adminId) {
-        let sql = `INSERT INTO complaint (typeOfComplaintFK, assetIdFK, complaintStatusIdFK, title, message, typeOfUserIdFK, raiseBy) 
-        VALUES (2, ${this.assetIdFK}, 2, '${this.title}','${this.message}', 2 ,${adminId})`;
+        let sql = `INSERT INTO complaint (typeOfComplaintFK, assetIdFK, complaintStatusIdFK, title, message, typeOfUserIdFK, raiseBy, organizationIdFK) 
+        VALUES (2, ${this.assetIdFK}, 2, "${this.title}","${this.message}", 2 ,${adminId}, ${this.organizationIdFK})`;
         return sql;
     }
 
@@ -53,12 +53,14 @@ class Complaints {
         return sql;
     }
 
-    static getAllComplaintsSQL(limit = 0, start = 0) {
+    static getAllComplaintsSQL(organizationIdFK, limit = 0, start = 0) {
         let startLimit = limit * start;
 
         let limitString = (limit > 0) ? `LIMIT ${startLimit}, ${limit}` : '';
 
-        let sql = `SELECT c.complaintId,c.title,tc.title as typeOfComplaint,a.assetTitle,a.assetCode,cs.title as complaintStatus,tu.title as typeOfUser,
+        let sql = `SELECT c.complaintId,c.title,tc.title as typeOfComplaint,a.assetTitle,a.assetCode,cs.title as complaintStatus,tu.title as typeOfUser, 
+                   (SELECT CONCAT('${BASE_URL}','',ci.imageName) as complaintImage from complaintimages ci where ci.complaintIdFK = c.complaintId LIMIT 1) as complaintImage,
+                   DATE_FORMAT(c.createdOn, '%d %M %Y %h:%i %p')as createdDate,
                    CASE 
                        WHEN c.typeOfUserIdFK = 1 THEN (SELECT CONCAT(firstName ,' ', lastName)as raiseByName FROM superadmin WHERE superAdminId = c.raiseBy)
                        WHEN c.typeOfUserIdFK = 2 THEN (SELECT CONCAT(firstName ,' ', lastName)as raiseByName FROM admin WHERE adminId = c.raiseBy)
@@ -68,17 +70,19 @@ class Complaints {
                    JOIN complaintstatus cs ON cs.complaintStatusId = c.complaintStatusIdFK
                    JOIN typeofuser tu ON c.typeOfUserIdFK = tu.typeOfUserId
                    JOIN typeofcomplaint tc ON c.typeOfComplaintFK = tc.typeComplaintId
-                   WHERE c.isDeleted = 0 AND c.typeOfComplaintFK = 2 ORDER BY c.createdOn DESC ${limitString}`;
+                   WHERE c.organizationIdFK = ${organizationIdFK} AND c.isDeleted = 0 AND c.typeOfComplaintFK = 2 ORDER BY c.createdOn DESC ${limitString}`;
         return sql;
     }
 
-    static getComplaintCount() {
-        let sql = `SELECT COUNT(complaintId) AS totalComplaints FROM complaint where typeOfComplaintFK = 2 AND isDeleted = 0`;
+    static getComplaintCount(organizationIdFK) {
+        let sql = `SELECT COUNT(complaintId) AS totalComplaints FROM complaint where organizationIdFK = ${organizationIdFK} AND typeOfComplaintFK = 2 AND isDeleted = 0`;
         return sql;
     }
 
-    static getAllComplaintsSearchSQL(keyword) {
+    static getAllComplaintsSearchSQL(organizationIdFK, keyword) {
         let sql = `SELECT c.complaintId,c.title,tc.title as typeOfComplaint,a.assetTitle,a.assetCode,cs.title as complaintStatus,tu.title as typeOfUser,
+                   (SELECT CONCAT('${BASE_URL}','',ci.imageName) as complaintImage from complaintimages ci where ci.complaintIdFK = c.complaintId LIMIT 1) as complaintImage,
+                   DATE_FORMAT(c.createdOn, '%d %M %Y %h:%i %p')as createdDate,     
                    CASE 
                         WHEN c.typeOfUserIdFK = 1 THEN (SELECT CONCAT(firstName ,' ', lastName)as raiseByName FROM superadmin WHERE superAdminId = c.raiseBy)
                         WHEN c.typeOfUserIdFK = 2 THEN (SELECT CONCAT(firstName ,' ', lastName)as raiseByName FROM admin WHERE adminId = c.raiseBy)
@@ -88,12 +92,13 @@ class Complaints {
                    JOIN complaintstatus cs ON cs.complaintStatusId = c.complaintStatusIdFK
                    JOIN typeofuser tu ON c.typeOfUserIdFK = tu.typeOfUserId
                    JOIN typeofcomplaint tc ON c.typeOfComplaintFK = tc.typeComplaintId
-                   WHERE c.title LIKE '%${keyword}%' AND c.isDeleted = 0 AND c.typeOfComplaintFK = 2`;
+                   WHERE c.organizationIdFK = ${organizationIdFK} AND c.title LIKE '%${keyword}%' AND c.isDeleted = 0 AND c.typeOfComplaintFK = 2`;
         return sql;
     }
 
     static getParticularComplaintByIdSQL(complaintId) {
-        let sql = `SELECT ct.title as typeOfComplaint,c.title,a.assetTitle,a.assetCode,cs.title as complaintStatus,tu.title as typeOfUser,c.message,CONCAT('${BASE_URL}','',ci.imageName) as complaintImage,
+        let sql = `SELECT ct.title as typeOfComplaint,c.title,a.assetTitle,a.assetCode,cs.title as complaintStatus,tu.title as typeOfUser,c.message,
+                   CONCAT('${BASE_URL}','',ci.imageName) as complaintImage,DATE_FORMAT(c.createdOn, '%d %M %Y %h:%i %p')as createdDate,
                    CASE 
                         WHEN c.typeOfUserIdFK = 1 THEN (SELECT CONCAT(firstName ,' ', lastName)as raiseByName FROM superadmin WHERE superAdminId = c.raiseBy)
                         WHEN c.typeOfUserIdFK = 2 THEN (SELECT CONCAT(firstName ,' ', lastName)as raiseByName FROM admin WHERE adminId = c.raiseBy)
@@ -114,7 +119,7 @@ class Complaints {
     }
 
     static deleteResponsiblePersonSQL(complaintId) {
-        let sql = `UPDATE responsiblePerson SET isDeleted = 1 WHERE complaintIdFK = ${complaintId}`;
+        let sql = `UPDATE responsibleperson SET isDeleted = 1 WHERE complaintIdFK = ${complaintId}`;
         return sql;
     }
 
@@ -129,7 +134,7 @@ class Complaints {
         let limitString = (limit > 0) ? `LIMIT ${startLimit}, ${limit}` : '';
 
         let sql = `SELECT IF(u.profileImage='' || profileImage is NULL ,CONCAT('${BASE_URL}','user.png'), CONCAT('${BASE_URL}',u.profileImage)) as userProfile,
-                   tc.title as typeOfComplaint,tu.title AS typeOfUser,CONCAT(u.firstName,' ',u.lastName)as userName,DATE_FORMAT(ct.createdOn, '%d %M %Y')as createdDate,
+                   tc.title as typeOfComplaint,tu.title AS typeOfUser,CONCAT(u.firstName,' ',u.lastName)as userName,DATE_FORMAT(ct.createdOn, '%d %M %Y %h:%i %p')as createdDate,
                    cs.title as complaintStatus FROM complainttrack ct 
                    JOIN complaint c ON ct.complaintIdFK = c.complaintId 
                    JOIN typeofcomplaint tc ON c.typeOfComplaintFK = tc.typeComplaintId 
@@ -142,7 +147,7 @@ class Complaints {
 
     static getComplaintTrackSearch(complaintId, keyword) {
         let sql = `SELECT IF(u.profileImage='' || profileImage is NULL ,CONCAT('${BASE_URL}','user.png'), CONCAT('${BASE_URL}',u.profileImage)) as userProfile,
-                   tc.title as typeOfComplaint,tu.title AS typeOfUser,CONCAT(u.firstName,' ',u.lastName)as userName,DATE_FORMAT(ct.createdOn, '%d %M %Y')as createdDate,
+                   tc.title as typeOfComplaint,tu.title AS typeOfUser,CONCAT(u.firstName,' ',u.lastName)as userName,DATE_FORMAT(ct.createdOn, '%d %M %Y %h:%i %p')as createdDate,
                    cs.title as complaintStatus FROM complainttrack ct 
                    JOIN complaint c ON ct.complaintIdFK = c.complaintId 
                    JOIN typeofcomplaint tc ON c.typeOfComplaintFK = tc.typeComplaintId 
@@ -164,7 +169,7 @@ class Complaints {
         let limitString = (limit > 0) ? `LIMIT ${startLimit}, ${limit}` : '';
 
         let sql = `SELECT tc.transferComplaintId,c.title AS complaintTitle,CONCAT(u1.firstName,' ',u1.lastName)AS fromUser,CONCAT(u.firstName,' ',u.lastName)AS toUser,
-                   ts.title as transferStatus,DATE_FORMAT(tc.createdOn, '%d %M %Y')AS createdDate FROM transfercomplaint tc 
+                   ts.title as transferStatus,DATE_FORMAT(tc.createdOn, '%d %M %Y %h:%i %p')as createdDate FROM transfercomplaint tc 
                    JOIN complaint c ON tc.complaintIdFK = c.complaintId 
                    JOIN user u ON tc.toUserIdFK = u.userId 
                    JOIN user u1 ON tc.fromUserIdFK = u1.userId
@@ -175,7 +180,7 @@ class Complaints {
 
     static getComplaintTransferSearch(complaintId, keyword) {
         let sql = `SELECT tc.transferComplaintId,c.title AS complaintTitle,CONCAT(u1.firstName,' ',u1.lastName)AS fromUser,CONCAT(u.firstName,' ',u.lastName)AS toUser,
-                   ts.title as transferStatus,DATE_FORMAT(tc.createdOn, '%d %M %Y')AS createdDate FROM transfercomplaint tc 
+                   ts.title as transferStatus,DATE_FORMAT(tc.createdOn, '%d %M %Y %h:%i %p')as createdDate FROM transfercomplaint tc 
                    JOIN complaint c ON tc.complaintIdFK = c.complaintId 
                    JOIN user u ON tc.toUserIdFK = u.userId 
                    JOIN user u1 ON tc.fromUserIdFK = u1.userId

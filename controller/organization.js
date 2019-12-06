@@ -2,6 +2,8 @@ const express = require("express");
 const db = require("../db/database");
 const Organization = require("../model/organization_model");
 const router = express.Router();
+const config = require("../config/config");
+var jwt = require('jsonwebtoken');
 const { check, validationResult } = require('express-validator');
 const { superVerifyToken } = require("../config/superVerifyJwtToken");
 
@@ -97,11 +99,11 @@ router.get("/listOfOrganizations/:pageNo", (req, res, next) => {
  *         description: Bad request
  */
 
-router.get("/organizationSearch/",[
+router.get("/organizationSearch/", [
     // validation rules start 
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
-     
+
     superVerifyToken(req, res, tokendata => {
 
         // send response of validation to client
@@ -113,22 +115,26 @@ router.get("/organizationSearch/",[
 
         let keyword = req.query.keyword;
 
-        db.query(Organization.getAllOrganizationsSearchSQL(keyword), (err, data) => {
-            if (!err) {
-                if (data && data.length > 0) {
-                    res.status(200).json({
-                        status: true,
-                        data:data,
-                        message: "Organization Found"
-                    });
-                } else {
-                    res.status(200).json({
-                        status: false,
-                        message: "No record found"
-                    });
+        db.query(Organization.getAllOrganizationListSQL(), (err, data) => {
+            var organizationId = data[0].organizationId;
+
+            db.query(Organization.getAllOrganizationsSearchSQL(organizationId, keyword), (err1, data1) => {
+                if (!err1) {
+                    if (data1 && data1.length > 0) {
+                        res.status(200).json({
+                            status: true,
+                            data: data1,
+                            message: "Organization Found"
+                        });
+                    } else {
+                        res.status(200).json({
+                            status: false,
+                            message: "No record found"
+                        });
+                    }
                 }
-            }
-        });
+            });
+        })
     })
 });
 
@@ -187,6 +193,8 @@ router.get("/viewParticularOrganization/:organizationId", (req, res, next) => {
  *     properties:
  *      organizationName:
  *         type: string
+ *      organizationCode:
+ *         type: string
  *      description :
  *         type: string
  */
@@ -240,16 +248,36 @@ router.post("/addOrganization", [
             if (!err) {
                 res.status(200).json({
                     message: "Organization added successfully",
+                    status: true,
                     Id: data.insertId
                 });
             } else {
-                res.status(400).json({
-                    message: "Something went wrong, Please try again"
+                let message = '';
+                if (err.message.includes('ER_DUP_ENTRY')) {
+                    message = 'Organization Code already exist'
+                }
+                else {
+                    message = 'Something went wrong'
+                }
+
+                res.status(200).json({
+                    message: message
                 });
             }
         });
     })
 });
+
+/**
+ * @swagger
+ * definitions:
+ *   UpdateOrganization :
+ *     properties:
+ *      organizationName:
+ *         type: string
+ *      description :
+ *         type: string
+ */
 
 /**
  * @swagger
@@ -282,7 +310,7 @@ router.post("/addOrganization", [
  *       400:
  *         description: Bad request
  *         schema:
- *           $ref: '#/definitions/Organization'
+ *           $ref: '#/definitions/UpdateOrganization'
  */
 
 router.put("/updateOrganization/:organizationId", [
@@ -309,15 +337,20 @@ router.put("/updateOrganization/:organizationId", [
                         if (data && data.affectedRows > 0) {
                             res.status(200).json({
                                 message: "Organization updated successfully",
+                                status: true,
                                 affectedRows: data.affectedRows
                             })
                         } else {
-                            res.status(400).json({
-                                message: "Something went wrong, Please try again"
+                            res.status(200).json({
+                                message: "Something went wrong, Please try again",
+                                status: false
                             });
                         }
                     } else {
-                        console.log(err.message);
+                        res.status(200).json({
+                            message: "Something went wrong, Please try again",
+                            status: false
+                        });
                     }
                 });
             }
@@ -426,8 +459,70 @@ router.get("/selectOrganization/", (req, res, next) => {
                             message: "Oraganization List Found"
                         });
                     } else {
-                        res.status(404).json({
+                        res.status(200).json({
                             message: "Oraganization List Not Found"
+                        });
+                    }
+                }
+            });
+        });
+    })
+});
+
+/**
+ * @swagger
+ * /organization/getOrganizationSpecificToken/{organizationId}:
+ *   get:
+ *     tags:
+ *       - Organization
+ *     description: Returns Organization Token
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: Authorization
+ *         description: token
+ *         in: header
+ *         required: true
+ *       - name: organizationId
+ *         description: organizationId
+ *         in: path
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK
+ *       404:
+ *         description: Not found
+ *       400:
+ *         description: Bad request
+ */
+
+router.get("/getOrganizationSpecificToken/:organizationId", (req, res, next) => {
+    superVerifyToken(req, res, tokendata => {
+        let organizationId = req.params.organizationId;
+
+        db.query(Organization.getOrganizationNameByIdSQL(organizationId), (err1, data1) => {
+            var organizationName = data1[0].organizationName;
+            db.query(Organization.getSuperAdminByAuthSQL(), (err, data) => {
+                var sId = data[0].superAdminId;
+                var orgId = organizationId;
+
+                var token = jwt.sign({ superAdminId: sId, organizationIdFK: orgId }, config.secret, {
+                    expiresIn: 2400000
+                });
+
+                data[0].token = token;
+
+                if (!err) {
+                    if (data && data.length > 0) {
+                        res.status(200).json({
+                            token: token,
+                            organizationName: organizationName,
+                            status: true
+                        });
+                    } else {
+                        res.status(200).json({
+                            message: "Something went wrong...",
+                            status: false
                         });
                     }
                 }

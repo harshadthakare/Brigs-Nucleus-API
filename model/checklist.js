@@ -27,13 +27,13 @@ class Checklist {
 
     addChecklistSQL() {
         let sql = `INSERT into checklist (title,organizationIdFK,categoryIdFK,checkingDuration,durationTypeIdFK) 
-                    VALUES ('${this.title}',${this.organizationIdFK},${this.categoryId},${this.checkingDuration},${this.durationTypeIdFK})`;
+                    VALUES ("${this.title}",${this.organizationIdFK},${this.categoryId},${this.checkingDuration},${this.durationTypeIdFK})`;
         return sql;
     }
 
     updateChecklistByIdSQL(checklistId) {
         let sql = `UPDATE checklist SET  
-        title = '${this.title}',
+        title = "${this.title}",
         categoryIdFK = '${this.categoryId}',
         checkingDuration = '${this.checkingDuration}',
         durationTypeIdFK = '${this.durationTypeIdFK}'

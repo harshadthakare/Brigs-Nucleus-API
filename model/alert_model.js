@@ -4,7 +4,7 @@ class Alert {
         obj && Object.assign(this, obj)
     }
 
-    static getAllAlerts(limit = 0, start = 0) {
+    static getAllAlerts(organizationIdFK, limit = 0, start = 0) {
         let startLimit = limit * start;
 
         let limitString = (limit > 0) ? `LIMIT ${startLimit}, ${limit}` : '';
@@ -12,20 +12,20 @@ class Alert {
         let sql = `SELECT alertId,masterIdType as alertName,title,CONCAT('${BASE_URL}','',image) as alertImage, 
                    (SELECT COUNT(alertIdFK) FROM alerttracking WHERE isRead = 1 AND alertId = alertIdFK)as isRead, 
                    (SELECT COUNT(alertIdFK) FROM alerttracking WHERE isDeliver = 1 AND alertId = alertIdFK)as isDeliver,message 
-                   FROM alert WHERE isDeleted = 0 ORDER BY createdOn ASC ${limitString}`;
+                   FROM alert WHERE organizationIdFK = ${organizationIdFK} AND isDeleted = 0 ORDER BY createdOn ASC ${limitString}`;
         return sql;
     }
 
-    static getAllAlertSearchSQL(keyword) {
+    static getAllAlertSearchSQL(organizationIdFK, keyword) {
         let sql = `SELECT alertId,masterIdType as alertName,title,CONCAT('${BASE_URL}','',image) as alertImage, 
                    (SELECT COUNT(alertIdFK) FROM alerttracking WHERE isRead = 1 AND alertId = alertIdFK)as isRead, 
                    (SELECT COUNT(alertIdFK) FROM alerttracking WHERE isDeliver = 1 AND alertId = alertIdFK)as isDeliver,message 
-                   FROM alert WHERE title LIKE '%${keyword}%' AND isDeleted = 0`;
+                   FROM alert WHERE organizationIdFK = ${organizationIdFK} AND title LIKE '%${keyword}%' AND isDeleted = 0`;
         return sql;
     }
 
-    static getAlertCount() {
-        let sql = `SELECT COUNT(alertId) as totalAlerts from alert WHERE isDeleted = 0`;
+    static getAlertCount(organizationIdFK) {
+        let sql = `SELECT COUNT(alertId) as totalAlerts from alert WHERE organizationIdFK = ${organizationIdFK} AND isDeleted = 0`;
         return sql;
     }
 

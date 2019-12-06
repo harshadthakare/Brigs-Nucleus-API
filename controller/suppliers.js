@@ -2,6 +2,7 @@ const express = require("express");
 const db = require("../db/database");
 const Supplier = require("../model/supplier");
 const { verifyToken } = require("../config/verifyJwtToken");
+
 const { check, validationResult } = require('express-validator');
 
 const router = express.Router();
@@ -284,7 +285,7 @@ router.put("/updateSupplier/:supplierId", [ // validation rules start
                                 message: message
                             });
                         }
-                    } 
+                    }
                 });
             }
             else {

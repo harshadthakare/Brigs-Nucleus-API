@@ -547,32 +547,36 @@ router.post("/addAsset", [
             return res.status(422).json({ errors: errors.array() });
         }
         let obj = req.body;
-        let assetCode = new Date().getTime()
-        obj.assetCode = assetCode;
-        obj.organizationIdFK = tokendata.organizationIdFK;
-        let asset = new Asset(obj);
+        db.query(Asset.getOrganizationCodeById(tokendata.organizationIdFK), (err1, data1) => {
 
-        db.query(asset.addAssetSQL(), (err, data) => {
+            var organizationCode = data1[0].organizationCode;
+            let assetCode = organizationCode + new Date().getTime()
+            obj.assetCode = assetCode;
+            obj.organizationIdFK = tokendata.organizationIdFK;
+            let asset = new Asset(obj);
 
-            if (!err) {
-                let assetID = data.insertId
+            db.query(asset.addAssetSQL(), (err, data) => {
 
-                db.query(asset.addAssetCatRelation(assetID, obj.categoryIdFK), (err, data) => {
+                if (!err) {
+                    let assetID = data.insertId
+
+                    db.query(asset.addAssetCatRelation(assetID, obj.categoryIdFK), (err, data) => {
+                        res.status(200).json({
+                            status: true,
+                            message: "Asset added successfully",
+                            Id: assetID
+                        });
+                    })
+                }
+                else {
                     res.status(200).json({
-                        status: true,
-                        message: "Asset added successfully",
-                        Id: assetID
+                        status: false,
+                        message: "Something went wrong, Please try again"
                     });
-                })
-            }
-            else {
-                res.status(200).json({
-                    status: false,
-                    message: "Something went wrong, Please try again"
-                });
-            }
+                }
+            });
         });
-    });
+    })
 });
 
 /**

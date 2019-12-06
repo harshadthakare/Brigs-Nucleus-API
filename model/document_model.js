@@ -5,59 +5,59 @@ class Document {
         obj && Object.assign(this, obj)
     }
 
-    static getAllDocumentsByAssetIdSQL(assetId, limit = 0, start = 0) {
+    static getAllDocumentsByAssetIdSQL(organizationIdFK, assetId, limit = 0, start = 0) {
         let startLimit = limit * start;
 
         let limitString = (limit > 0) ? `LIMIT ${startLimit}, ${limit}` : '';
 
         let sql = `SELECT d.documentId,d.documentCode,d.title,d.description,CONCAT('${BASE_URL}','',d.filepath) as filepath,d.documentTypeIdFK,d.masterId 
-                   FROM document d JOIN asset a ON d.masterId = a.assetId WHERE a.assetId = ${assetId} AND d.documentTypeIdFK = 2 AND d.isDeleted = 0
-                   ORDER BY d.createdOn DESC ${limitString}`
+                   FROM document d JOIN asset a ON d.masterId = a.assetId WHERE d.organizationIdFK = ${organizationIdFK} AND a.assetId = ${assetId} AND d.documentTypeIdFK = 2 
+                   AND d.isDeleted = 0 ORDER BY d.createdOn DESC ${limitString}`
         return sql;
     }
 
-    static getAllDocumentsByCategoryIdSQL(categoryId, limit = 0, start = 0) {
+    static getAllDocumentsByCategoryIdSQL(organizationIdFK, categoryId, limit = 0, start = 0) {
         let startLimit = limit * start;
 
         let limitString = (limit > 0) ? `LIMIT ${startLimit}, ${limit}` : '';
 
         let sql = `SELECT d.documentId,d.documentCode,d.title,d.description,CONCAT('${BASE_URL}','',d.filepath) as filepath,d.documentTypeIdFK,d.masterId 
-                   FROM document d JOIN category c ON d.masterId = c.categoryId WHERE c.categoryId = ${categoryId} AND d.documentTypeIdFK = 1 AND d.isDeleted = 0
-                   ORDER BY d.createdOn DESC ${limitString}`
+                   FROM document d JOIN category c ON d.masterId = c.categoryId WHERE d.organizationIdFK = ${organizationIdFK} AND c.categoryId = ${categoryId} AND d.documentTypeIdFK = 1
+                   AND d.isDeleted = 0 ORDER BY d.createdOn DESC ${limitString}`
         return sql;
     }
 
-    static getAllDocuments(limit = 0, start = 0) {
+    static getAllDocuments(organizationIdFK, limit = 0, start = 0) {
         let startLimit = limit * start;
 
         let limitString = (limit > 0) ? `LIMIT ${startLimit}, ${limit}` : '';
 
         let sql = `SELECT d.documentId,d.documentCode,d.title,d.description,CONCAT('${BASE_URL}','',d.filepath) as filepath,d.documentTypeIdFK,d1.title as documentType 
-                   FROM document d JOIN documenttype d1 ON d.documentTypeIdFK = d1.documentTypeId WHERE d.isDeleted = 0
+                   FROM document d JOIN documenttype d1 ON d.documentTypeIdFK = d1.documentTypeId WHERE d.organizationIdFK = ${organizationIdFK} AND d.isDeleted = 0
                    ORDER BY d.createdOn DESC ${limitString}`
         return sql;
     }
 
-    static getAllDocumentSearchSQL(keyword) {
+    static getAllDocumentSearchSQL(organizationIdFK, keyword) {
         let sql = `SELECT d.documentId,d.documentCode,d.title,d.description,d1.title as documentType FROM document d
                    JOIN documenttype d1 ON d.documentTypeIdFK = d1.documentTypeId
-                   WHERE d.title LIKE '%${keyword}%' AND d.isDeleted = 0`;
+                   WHERE d.organizationIdFK = ${organizationIdFK} AND d.title LIKE '%${keyword}%' AND d.isDeleted = 0`;
         return sql;
     }
 
-    static getAllDocumentSearchByCategory(categoryId, keyword) {
+    static getAllDocumentSearchByCategory(organizationIdFK, categoryId, keyword) {
 
         let sql = `SELECT d.documentId,d.documentCode,d.title,d.description 
                    FROM document d JOIN category c ON d.masterId = c.categoryId 
-                   WHERE c.categoryId = ${categoryId} AND d.documentTypeIdFK = 1 AND d.title LIKE '%${keyword}%' AND d.isDeleted = 0`
+                   WHERE d.organizationIdFK = ${organizationIdFK} AND c.categoryId = ${categoryId} AND d.documentTypeIdFK = 1 AND d.title LIKE '%${keyword}%' AND d.isDeleted = 0`
         return sql;
     }
 
-    static getAllDocumentSearchByAsset(assetId, keyword) {
+    static getAllDocumentSearchByAsset(organizationIdFK, assetId, keyword) {
 
         let sql = `SELECT d.documentId,d.documentCode,d.title,d.description 
                    FROM document d JOIN asset a ON d.masterId = a.assetId 
-                   WHERE a.assetId = ${assetId} AND d.documentTypeIdFK = 2 AND d.title LIKE '%${keyword}%' AND d.isDeleted = 0`
+                   WHERE d.organizationIdFK = ${organizationIdFK} AND a.assetId = ${assetId} AND d.documentTypeIdFK = 2 AND d.title LIKE '%${keyword}%' AND d.isDeleted = 0`
         return sql;
     }
 
@@ -73,13 +73,15 @@ class Document {
             description,
             filepath,
             documentTypeIdFK,
-            masterId)
+            masterId,
+            organizationIdFK)
             VALUES('${this.documentCode}',
                     '${this.title}',
-                    '${this.description}',
+                    "${this.description}",
                     '${this.filepath}',
                     ${this.documentTypeIdFK},
-                    ${this.masterId})`;
+                    ${this.masterId},
+                    ${this.organizationIdFK})`;
         return sql;
     }
 
@@ -89,20 +91,22 @@ class Document {
         description,
         filepath,
         documentTypeIdFK,
-        masterId)
+        masterId,
+        organizationIdFK)
         VALUES('${this.documentCode}',
                 '${this.title}',
-                '${this.description}',
+                "${this.description}",
                 '${this.filepath}',
                 3,
-                0)`;
+                0,
+                ${this.organizationIdFK})`;
         return sql;
     }
 
     updateDocumentByIdSQL(documentId) {
         let sql = `UPDATE document SET
             title = '${this.title}',
-            description = '${this.description}',
+            description = "${this.description}",
             filepath = '${this.filepath}',
             documentTypeIdFK = ${this.documentTypeIdFK},
             masterId = ${this.masterId}
@@ -113,7 +117,7 @@ class Document {
     updateDocumateByIdSQL(documentId) {
         let sql = `UPDATE document SET
         title = '${this.title}',
-        description = '${this.description}',
+        description = "${this.description}",
         filepath = '${this.filepath}',
         documentTypeIdFK = 3,
         masterId = 0

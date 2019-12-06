@@ -22,6 +22,7 @@ const complaints = require("./controller/complaints");
 const taskmate = require("./controller/taskmate");
 const organization = require("./controller/organization");
 const admin = require("./controller/admin");
+const installationLocation = require("./controller/installationLocation");
 
 var swaggerJSDoc = require('swagger-jsdoc');
 const app = express();
@@ -33,7 +34,7 @@ var swaggerDefinition = {
       version: '1.0.0',
       description: 'Hello i am swagger . I am one step ahead of postman. My job is to provide API description',
     },
-    host: '192.168.0.166:8082',
+    host: '192.168.0.114:8082',
     basePath: '/',
    }
   
@@ -102,6 +103,7 @@ app.use("/complaints",complaints);
 app.use("/taskmate",taskmate);
 app.use("/organization",organization);
 app.use("/admin",admin);
+app.use("/installationLocation",installationLocation);
  
 //if we are here then the specified request is not found
 app.use((req,res,next)=> {

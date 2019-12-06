@@ -47,18 +47,18 @@ class Question {
 
     addQuestionSQL() {
         let sql = `INSERT into question (title,questionTypeIdFK,checkListIdFK,isCompulsory) 
-                VALUES ('${this.title}',${this.questionTypeIdFK},${this.checkListIdFK},${this.isCompulsory})`;
+                VALUES ("${this.title}",${this.questionTypeIdFK},${this.checkListIdFK},${this.isCompulsory})`;
         return sql;
     }
 
     addLinkQuestionSQL() {
         let sql = `INSERT into question (title,questionTypeIdFK,checkListIdFK,isRefer,isCompulsory) 
-                VALUES ('${this.title}',${this.questionTypeIdFK},${this.checkListIdFK},1,${this.isCompulsory})`;
+                VALUES ("${this.title}",${this.questionTypeIdFK},${this.checkListIdFK},1,${this.isCompulsory})`;
         return sql;
     }
 
     addQuestionOptionSQL(questionIdFK) {
-        let sql = `INSERT into questionoption(questionIdFK,title,isDanger) VALUES (${questionIdFK},'${this.optionTitle}',${this.isDanger})`;
+        let sql = `INSERT into questionoption(questionIdFK,title,isDanger) VALUES (${questionIdFK},"${this.optionTitle}",${this.isDanger})`;
         return sql;
     }
 
@@ -74,7 +74,7 @@ class Question {
 
     updateQuestionByIdSQL(questionId) {
         let sql = `UPDATE question SET 
-                    title            = '${this.title}',
+                    title            = "${this.title}",
                     questionTypeIdFK = ${this.questionTypeIdFK},
                     checkListIdFK    = ${this.checkListIdFK},
                     isCompulsory     = ${this.isCompulsory}
@@ -84,7 +84,7 @@ class Question {
 
     updateQuestionOptionSQL(questionOptionId) {
         let sql = `UPDATE questionoption SET
-                    title = '${this.optionTitle}',
+                    title = "${this.optionTitle}",
                     isDanger = ${this.isDanger}
         WHERE questionOptionId = ${questionOptionId}`;
         return sql;

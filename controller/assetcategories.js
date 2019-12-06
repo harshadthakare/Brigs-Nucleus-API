@@ -51,18 +51,21 @@ router.get("/categoryList", (req, res, next) => {
 
                     generateCatArray(allCategory, (result) => {
                         res.status(200).json({
+                            status: true,
                             "assetCategory": result,
                             message: "Asset Category List found"
                         });
                     })
                 } else {
-                    res.status(404).json({
+                    res.status(200).json({
+                        status: false,
                         message: "Asset Category List Not found"
                     });
                 }
             }
             else {
-                res.status(404).json({
+                res.status(200).json({
+                    status: false,
                     message: "Asset Category List Not found"
                 });
             }
@@ -376,11 +379,13 @@ router.get("/selectAssetCategory", (req, res, next) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({
+                        status: true,
                         AssetCategory: data,
                         message: "Asset Category List Found",
                     });
                 } else {
-                    res.status(404).json({
+                    res.status(200).json({
+                        status: false,
                         message: "Asset Category List Not Found"
                     });
                 }
