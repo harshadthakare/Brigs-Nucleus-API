@@ -9,7 +9,7 @@ class Organization {
 
     let limitString = (limit > 0) ? `LIMIT ${startLimit}, ${limit}` : '';
 
-    let sql = `SELECT organizationId,organizationName,organizationCode,description,
+    let sql = `SELECT organizationId,organizationName,organizationCode,description,DATE_FORMAT(createdOn, '%d %M %Y')as createdDate,
                CASE
                    WHEN organizationId = 1 IS NOT NULL THEN 
                     (SELECT COUNT(assetId) as totalAssets FROM asset WHERE organizationIdFK = organizationId AND isDeleted = 0)
@@ -19,13 +19,20 @@ class Organization {
                    WHEN organizationId = 1 IS NOT NULL THEN 
                     (SELECT COUNT(adminId) as totalAdmins FROM admin WHERE organizationIdFK = organizationId AND isDeleted = 0)
                     ELSE 0
-                   END as totalAdmins
+                   END as totalAdmins,
+              CASE
+                   WHEN organizationId = ${organizationId} IS NOT NULL THEN 
+                   (SELECT COUNT(u.userId) as totalUsers FROM user u
+                    JOIN department d ON u.departmentIdFK = d.departmentId
+                    WHERE d.organizationIdFK = organizationId AND u.isDeleted = 0 AND d.isDeleted = 0)
+                    ELSE 0
+                   END as totalUsers
                FROM organization WHERE isDeleted = 0 ORDER BY createdOn DESC ${limitString}`;
     return sql;
   }
 
   static getAllOrganizationsSearchSQL(organizationId, keyword) {
-    let sql = `SELECT organizationId,organizationName,organizationCode,description,
+    let sql = `SELECT organizationId,organizationName,organizationCode,description,DATE_FORMAT(createdOn, '%d %M %Y')as createdDate,
                CASE
                    WHEN organizationId = ${organizationId} IS NOT NULL THEN 
                       (SELECT COUNT(assetId) as totalAssets FROM asset WHERE organizationIdFK = organizationId AND isDeleted = 0)
@@ -35,7 +42,14 @@ class Organization {
                WHEN organizationId = ${organizationId} IS NOT NULL THEN 
                       (SELECT COUNT(adminId) as totalAdmins FROM admin WHERE organizationIdFK = organizationId AND isDeleted = 0)
                       ELSE 0
-               END as totalAdmins
+               END as totalAdmins,
+               CASE
+                   WHEN organizationId = ${organizationId} IS NOT NULL THEN 
+                   (SELECT COUNT(u.userId) as totalUsers FROM user u
+                    JOIN department d ON u.departmentIdFK = d.departmentId
+                    WHERE d.organizationIdFK = organizationId AND u.isDeleted = 0 AND d.isDeleted = 0)
+                    ELSE 0
+                   END as totalUsers
                FROM organization WHERE organizationName LIKE '%${keyword}%' AND isDeleted = 0`;
     return sql;
   }
@@ -78,7 +92,7 @@ class Organization {
   }
 
   static getOrganizationsCountSQL(organizationId) {
-    let sql = `SELECT organizationId,organizationName,organizationCode,description,
+    let sql = `SELECT organizationId,organizationName,organizationCode,description,DATE_FORMAT(createdOn, '%d %M %Y')as createdDate,
                  CASE
                  WHEN organizationId = ${organizationId} IS NOT NULL THEN 
                                    (SELECT COUNT(assetId) as totalAssets FROM asset WHERE organizationIdFK = organizationId AND isDeleted = 0)

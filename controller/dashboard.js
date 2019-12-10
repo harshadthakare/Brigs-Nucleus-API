@@ -99,6 +99,7 @@ router.get("/getMaintenanceNotDoneAssets/:pageNo", (req, res, next) => {
                                     res.status(200).json({
                                         "currentPage": page,
                                         "totalCount": pageCount,
+                                        "totalMaintenceRemainingAssets": 0,
                                         "dashboard": [],
                                         message: "Not found"
                                     });
@@ -163,4 +164,91 @@ router.get("/superAdminCount", (req, res, next) => {
     })
 });
 
+/**
+ * @swagger
+ * /dashboard/monthlyOrganizationCreationCounts:
+ *   get:
+ *     tags:
+ *       - Dashboard
+ *     description: Returns Monthwise Organization Count details
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: Authorization
+ *         description: token
+ *         in: header
+ *         required: true
+ *     responses:   
+ *       200:
+ *         description: OK
+ *       404:
+ *         description: Not found
+ *       400:
+ *         description: Bad request
+ */
+router.get("/monthlyOrganizationCreationCounts", (req, res, next) => {
+    superVerifyToken(req, res, tokendata => {
+        let year = new Date();
+        year = year.getFullYear();
+
+        db.query(Dashboard.getAllOrganizationCreationCounts(year), (err, data) => {
+            if (!err) {
+                if (data && data.length > 0) {
+                    res.status(200).json({
+                        "MonthWiseOrgCreationCount": data,
+                        status: true,
+                        message: "counts Of Monthly Created Organizations found"
+                    });
+                } else {
+                    res.status(200).json({
+                        status:false,
+                        message: "Not found"
+                    });
+                }
+            }
+        });
+    })
+});
+// router.get("/monthlyOrganizationCreationCounts", (req, res, next) => {
+//     superVerifyToken(req, res, tokendata => {
+
+//         let year = new Date();
+//         year = year.getFullYear();
+
+//         let arrMonthWiseOrgCreationCount = []
+//         db.query(Dashboard.getAllOrganizationCreationCounts(year), (err, data) => {
+//             if (!err) {
+//                 if (data && data.length > 0) {
+//                     for (let month = 0; month < 12; month++) {
+//                         for (let index = 0; index < data.length; index++) {
+//                             if ((month + 1) == data[index].monthCreatedON) {
+
+//                                 let value = (month + 1) == data[index].monthCreatedON ? data[index].monthCreatedON : 0;
+//                                 arrMonthWiseOrgCreationCount.push(
+//                                     value
+//                                 )
+//                                 break;
+//                             }
+//                         }
+//                         if (month == arrMonthWiseOrgCreationCount.length) {
+//                             arrMonthWiseOrgCreationCount.push(0);
+//                         }
+//                     }
+//                     res.status(200).json({
+//                         "MonthWiseOrgCreationCount": data,
+//                         status: true,
+//                         message: "counts Of Monthly Created Organizations found"
+//                     });
+
+//                 } else {
+//                     res.status(200).json({
+//                         "MonthWiseOrgCreationCount": [],
+//                         status: false,
+//                         message: "No record found"
+//                     });
+//                 }
+//             }
+//         });
+//     })
+// });
 module.exports = router;

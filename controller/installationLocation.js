@@ -3,14 +3,14 @@ const db = require("../db/database");
 const InstallationLocationType = require("../model/installationLocation_model");
 const router = express.Router();
 const { check, validationResult } = require('express-validator');
-const { superVerifyToken } = require("../config/superVerifyJwtToken");
+const { verifyToken } = require("../config/verifyJwtToken");
 
 /**
  * @swagger
  * definitions:
  *   InstallationLocation :
  *     properties:
- *      title:
+ *      installationLocationName:
  *         type: string
  */
 
@@ -28,6 +28,10 @@ const { superVerifyToken } = require("../config/superVerifyJwtToken");
 *         description: InstallationLocation object
 *         in: body
 *         required: true
+*       - name: Authorization
+*         description: token
+*         in: header
+*         required: true
 *     responses:
 *       200:
 *         description: OK
@@ -39,17 +43,13 @@ const { superVerifyToken } = require("../config/superVerifyJwtToken");
 *           $ref: '#/definitions/InstallationLocation'   
 */
 router.post("/addInstallationLocation", [
-    check('title').trim().isAlpha().withMessage('Only characters are allowed'),
 ], (req, res, next) => {
-    superVerifyToken(req, res, tokendata => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(422).json({ errors: errors.array() });
-        }
+    verifyToken(req, res, tokendata => {
+        let obj = req.body;
+        let installationLocationType = new InstallationLocationType(obj);
+        obj.organizationIdFK = tokendata.organizationIdFK;
 
-        let installationLocationType = new InstallationLocationType(req.body);
-
-        db.query(installationLocationType.addInstallationLocationTypeSQL(), (err, data) => {
+        db.query(installationLocationType.addInstallationLocationTypeSQL(obj.organizationIdFK), (err, data) => {          
             if (!err) {
                 res.status(200).json({
                     status: true,
@@ -85,6 +85,10 @@ router.post("/addInstallationLocation", [
  *         description: admin Data from body
  *         in: body
  *         required: true
+ *       - name: Authorization
+ *         description: token
+ *         in: header
+ *         required: true
  *     responses:
  *       200:
  *         description: OK
@@ -98,19 +102,10 @@ router.post("/addInstallationLocation", [
 
 router.put("/updateInstallationLocation/:installationLocationTypeId", [
 
-    check('title').trim().isAlpha().withMessage('Only characters are allowed'),
-
 ], (req, res, next) => {
-    superVerifyToken(req, res, tokendata => {
-        // send response of validation to client
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(422).json({ errors: errors.array() });
-        }
-        // ....!  end send response of validation to client
+    verifyToken(req, res, tokendata => {
 
         var installationLocationTypeId = req.params.installationLocationTypeId;
-
         let installationLocationType = new InstallationLocationType(req.body);
 
         db.query(InstallationLocationType.checkInstallationLocationTypeIdSQL(installationLocationTypeId), (err, data) => {
@@ -162,6 +157,10 @@ router.put("/updateInstallationLocation/:installationLocationTypeId", [
  *         in: path
  *         type: integer
  *         required: true
+ *       - name: Authorization
+ *         description: token
+ *         in: header
+ *         required: true
  *     responses:
  *       200:
  *         description: OK
@@ -171,7 +170,7 @@ router.put("/updateInstallationLocation/:installationLocationTypeId", [
  *         description: Bad request
  */
 router.put("/deleteInstallationLocation/:installationLocationTypeId", (req, res, next) => {
-    superVerifyToken(req, res, tokendata => {
+    verifyToken(req, res, tokendata => {
         var installationLocationTypeId = req.params.installationLocationTypeId;
 
         db.query(InstallationLocationType.checkInstallationLocationTypeIdSQL(installationLocationTypeId), (err, data) => {
@@ -217,6 +216,11 @@ router.put("/deleteInstallationLocation/:installationLocationTypeId", (req, res,
  *     description: API for installationLocation list
  *     produces:
  *       - application/json
+ *     parameters:
+ *       - name: Authorization
+ *         description: token
+ *         in: header
+ *         required: true
  *     responses:
  *       200:
  *         description: OK
@@ -226,8 +230,8 @@ router.put("/deleteInstallationLocation/:installationLocationTypeId", (req, res,
  *         description: Bad request
  */
 router.get("/listOfInstallationLocation", (req, res, next) => {
-    superVerifyToken(req, res, tokendata => {
-        db.query(InstallationLocationType.getInstallationLocationListSQL(), (err, data) => {
+    verifyToken(req, res, tokendata => {
+        db.query(InstallationLocationType.getInstallationLocationListSQL(tokendata.organizationIdFK), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({
@@ -239,6 +243,7 @@ router.get("/listOfInstallationLocation", (req, res, next) => {
                 else {
                     res.status(200).json({
                         status: false,
+                        installationLocationList: [],
                         message: "Installation Location List Not Found"
                     });
                 }

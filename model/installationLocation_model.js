@@ -4,16 +4,15 @@ class InstallationLocationType {
         obj && Object.assign(this, obj)
     }
 
-    addInstallationLocationTypeSQL() {
-
-        let sql = `INSERT INTO installationlocationtype(title)
-                   VALUES('${this.title}')`;
+    addInstallationLocationTypeSQL(organizationIdFK) {
+        let sql = `INSERT INTO installationlocationtype(title,organizationIdFK)
+                   VALUES('${this.installationLocationName}', ${organizationIdFK})`;
         return sql;
     }
 
     updateInstallationlocationtypeSQL(installationLocationTypeId) {
         let sql = `UPDATE installationlocationtype 
-                    SET title = '${this.title}'
+                    SET title = '${this.installationLocationName}'
                     WHERE installationLocationTypeId = ${installationLocationTypeId}`;
         return sql;
     }
@@ -23,9 +22,8 @@ class InstallationLocationType {
         return sql;
     }
 
-    static getInstallationLocationListSQL() {
-
-        let sql = `SELECT installationLocationTypeId,title as installationLocationName FROM installationlocationtype WHERE isDeleted = 0 ORDER BY createdOn DESC`;
+    static getInstallationLocationListSQL(organizationIdFK) {
+        let sql = `SELECT installationLocationTypeId,title as installationLocationName FROM installationlocationtype WHERE organizationIdFK = ${organizationIdFK} AND isDeleted = 0 ORDER BY createdOn DESC`;
         return sql;
     }
 

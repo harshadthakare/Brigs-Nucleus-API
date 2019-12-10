@@ -1093,4 +1093,54 @@ router.put("/deleteTransferTask/:complaintId", (req, res, next) => {
     })
 });
 
+/**
+ * @swagger
+ * /taskmate/pendingTasksList/{limit}:
+ *   get:
+ *     tags:
+ *       - Taskmate
+ *     description: Returns list of all Pending Tasks
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: limit
+ *         description: if limit = 0 gives list of ALL Pending Tasks
+ *         in: path
+ *         type: integer
+ *         required: true
+ *       - name: Authorization
+ *         description: token
+ *         in: header
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK
+ *       404:
+ *         description: Not found
+ *       400:
+ *         description: Bad request
+ */
+router.get("/pendingTasksList/:limit", (req, res, next) => {
+    verifyToken(req, res, tokendata => {
+
+        let limit = req.params.limit;
+        db.query(Taskmate.getPendingTasksSQL(tokendata.organizationIdFK, limit), (err, data) => {
+            if (!err) {
+                if (data && data.length > 0) {
+                    res.status(200).json({
+                        "TasksList": data,
+                        status:true,
+                        message: "Pending Task List found",
+                    });
+                } else {
+                    res.status(200).json({
+                        "TasksList": [],
+                        status:false,
+                        message: "No record found"  
+                    });
+                }
+            }
+        });
+    })
+});
 module.exports = router;

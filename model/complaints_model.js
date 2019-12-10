@@ -215,5 +215,23 @@ class Complaints {
         let sql = `UPDATE transfercomplaint SET isDeleted = 1 WHERE complaintIdFK = ${complaintId}`;
         return sql;
     }
+    static getPendingComplaintsSQL(organizationIdFK, limit) {
+        let limitString = (limit > 0 && limit != 0) ? `LIMIT  0, ${limit}` : '';
+
+        let sql = `SELECT c.complaintId,c.title,tc.title as typeOfComplaint,a.assetTitle,a.assetCode,cs.title as complaintStatus,tu.title as typeOfUser, 
+        (SELECT CONCAT('${BASE_URL}','',ci.imageName) as complaintImage from complaintimages ci where ci.complaintIdFK = c.complaintId LIMIT 1) as complaintImage,
+        DATE_FORMAT(c.createdOn, '%d %M %Y %h:%i %p')as createdDate,
+        CASE 
+            WHEN c.typeOfUserIdFK = 1 THEN (SELECT CONCAT(firstName ,' ', lastName)as raiseByName FROM superadmin WHERE superAdminId = c.raiseBy)
+            WHEN c.typeOfUserIdFK = 2 THEN (SELECT CONCAT(firstName ,' ', lastName)as raiseByName FROM admin WHERE adminId = c.raiseBy)
+            WHEN c.typeOfUserIdFK = 3 THEN (SELECT CONCAT(firstName ,' ', lastName)as raiseByName FROM user WHERE userId = c.raiseBy)
+        END AS raisedByName
+        FROM complaint c JOIN asset a ON a.assetId = c.assetIdFK
+        JOIN complaintstatus cs ON cs.complaintStatusId = c.complaintStatusIdFK
+        JOIN typeofuser tu ON c.typeOfUserIdFK = tu.typeOfUserId
+        JOIN typeofcomplaint tc ON c.typeOfComplaintFK = tc.typeComplaintId
+        WHERE c.complaintStatusIdFK = 6 AND c.organizationIdFK = ${organizationIdFK} AND c.isDeleted = 0 AND c.typeOfComplaintFK = 2 ORDER BY c.createdOn DESC ${limitString}`;
+        return sql;   
+    }
 }
 module.exports = Complaints;

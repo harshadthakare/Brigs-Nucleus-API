@@ -114,7 +114,7 @@ router.get("/complaintsList/:pageNo", (req, res, next) => {
                                     res.status(200).json({
                                         "currentPage": page,
                                         "totalCount": pageCount1,
-                                        "totalComplaints":totalComplaints,
+                                        "totalComplaints": totalComplaints,
                                         "complaintList": data,
                                         message: "Complaint List found",
                                     });
@@ -172,11 +172,11 @@ router.get("/complaintsList/:pageNo", (req, res, next) => {
  *         description: Bad request
  */
 
-router.get("/complaintSearch/",[
+router.get("/complaintSearch/", [
     // validation rules start 
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
-     
+
     verifyToken(req, res, tokendata => {
 
         // send response of validation to client
@@ -193,7 +193,7 @@ router.get("/complaintSearch/",[
                 if (data && data.length > 0) {
                     res.status(200).json({
                         status: true,
-                        data:data,
+                        data: data,
                         message: "Complaint Found"
                     });
                 } else {
@@ -359,11 +359,11 @@ router.get("/complaintsTrackList/:complaintId/:pageNo", (req, res, next) => {
  *         description: Bad request
  */
 
-router.get("/complaintTrackSearch/",[
+router.get("/complaintTrackSearch/", [
     // validation rules start 
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
-     
+
     verifyToken(req, res, tokendata => {
 
         // send response of validation to client
@@ -376,12 +376,12 @@ router.get("/complaintTrackSearch/",[
         let complaintId = req.query.complaintId;
         let keyword = req.query.keyword;
 
-        db.query(Complaints.getComplaintTrackSearch(complaintId,keyword), (err, data) => {
+        db.query(Complaints.getComplaintTrackSearch(complaintId, keyword), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({
                         status: true,
-                        data:data,
+                        data: data,
                         message: "Complaint Track List Found"
                     });
                 } else {
@@ -827,11 +827,11 @@ router.get("/transferComplaintsList/:complaintId/:pageNo", (req, res, next) => {
  *         description: Bad request
  */
 
-router.get("/complaintTransferSearch/",[
+router.get("/complaintTransferSearch/", [
     // validation rules start 
     check('keyword').trim().not().isEmpty().withMessage("Please enter keyword")
 ], (req, res, next) => {
-     
+
     verifyToken(req, res, tokendata => {
 
         // send response of validation to client
@@ -844,12 +844,12 @@ router.get("/complaintTransferSearch/",[
         let complaintId = req.query.complaintId;
         let keyword = req.query.keyword;
 
-        db.query(Complaints.getComplaintTransferSearch(complaintId,keyword), (err, data) => {
+        db.query(Complaints.getComplaintTransferSearch(complaintId, keyword), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({
                         status: true,
-                        data:data,
+                        data: data,
                         message: "Complaint Transfer List Found"
                     });
                 } else {
@@ -1366,6 +1366,57 @@ router.get("/seletListOfUser", (req, res, next) => {
             }
         });
     });
+});
+
+/**
+ * @swagger
+ * /complaints/pendingComplaintsList/{limit}:
+ *   get:
+ *     tags:
+ *       - Complaint
+ *     description: Returns list of all Pending Complaints
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: limit
+ *         description: if limit = 0 gives list of ALL Pending complaints
+ *         in: path
+ *         type: integer
+ *         required: true
+ *       - name: Authorization
+ *         description: token
+ *         in: header
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK
+ *       404:
+ *         description: Not found
+ *       400:
+ *         description: Bad request
+ */
+router.get("/pendingComplaintsList/:limit", (req, res, next) => {
+    verifyToken(req, res, tokendata => {
+
+        let limit = req.params.limit;
+        db.query(Complaints.getPendingComplaintsSQL(tokendata.organizationIdFK, limit), (err, data) => {
+            if (!err) {
+                if (data && data.length > 0) {
+                    res.status(200).json({
+                        "complaintList": data,
+                        status:true,
+                        message: "Complaint List found",
+                    });
+                } else {
+                    res.status(200).json({
+                        "complaintList": [],
+                        status:false,
+                        message: "No record found"
+                    });
+                }
+            }
+        });
+    })
 });
 
 module.exports = router;

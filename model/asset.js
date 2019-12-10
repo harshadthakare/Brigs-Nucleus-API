@@ -171,8 +171,8 @@ class Asset {
         return sql;
     }
 
-    static getInstallationLocationType() {
-        let sql = `SELECT installationLocationTypeId as installationLocationTypeIdFK,title FROM installationlocationtype WHERE isDeleted = 0 ORDER BY createdOn DESC`;
+    static getInstallationLocationType(organizationIdFK) {
+        let sql = `SELECT installationLocationTypeId as installationLocationTypeIdFK,title FROM installationlocationtype WHERE organizationIdFK = ${organizationIdFK} AND isDeleted = 0 ORDER BY createdOn DESC`;
         return sql;
     }
 

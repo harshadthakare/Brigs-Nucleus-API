@@ -941,7 +941,7 @@ router.post('/uploadAssetDoc', uploadDoc.single('file'), (req, res, next) => {
 router.get("/selectInstallationLocationType", (req, res, next) => {
     verifyToken(req, res, tokendata => {
 
-        db.query(Asset.getInstallationLocationType(), (err, data) => {
+        db.query(Asset.getInstallationLocationType(tokendata.organizationIdFK), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
 
