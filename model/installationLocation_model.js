@@ -5,8 +5,9 @@ class InstallationLocationType {
     }
 
     addInstallationLocationTypeSQL(organizationIdFK) {
+
         let sql = `INSERT INTO installationlocationtype(title,organizationIdFK)
-                   VALUES('${this.installationLocationName}', ${organizationIdFK})`;
+                   VALUES('${this.installationLocationName}',${organizationIdFK})`;
         return sql;
     }
 
@@ -23,12 +24,20 @@ class InstallationLocationType {
     }
 
     static getInstallationLocationListSQL(organizationIdFK) {
+
         let sql = `SELECT installationLocationTypeId,title as installationLocationName FROM installationlocationtype WHERE organizationIdFK = ${organizationIdFK} AND isDeleted = 0 ORDER BY createdOn DESC`;
         return sql;
     }
 
     static checkInstallationLocationTypeIdSQL(installationLocationTypeId) {
         let sql = `SELECT installationLocationTypeId FROM installationlocationtype WHERE installationLocationTypeId = ${installationLocationTypeId} AND isDeleted = 0`;
+        return sql;
+    }
+
+    static getLocationAssignedOrNot(installationLocationTypeId) {
+        let sql = `SELECT i.installationLocationTypeId,a.assetTitle FROM asset a 
+                   JOIN installationlocationtype i ON a.installationLocationTypeIdFK = i.installationLocationTypeId 
+                   WHERE i.installationLocationTypeId = ${installationLocationTypeId}`;
         return sql;
     }
 }

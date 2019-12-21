@@ -85,6 +85,12 @@ class Document {
         return sql;
     }
 
+    static getOrganizationCodeById(organizationIdFK) {
+
+        let sql = `SELECT organizationCode FROM organization WHERE organizationId = ${organizationIdFK}`;
+        return sql;
+    }
+
     addDocumateSQL() {
         let sql = `INSERT INTO document(documentCode,
         title,

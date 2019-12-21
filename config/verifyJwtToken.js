@@ -6,7 +6,7 @@ const  verifyToken = (req, res, next) => {
 
     let token = req.headers.authorization;
     if (!token) {
-        return res.status(403).send({
+        return res.status(500).send({
             auth: false, message: 'No token provided.'
         });
     }
@@ -18,7 +18,14 @@ const  verifyToken = (req, res, next) => {
             });
 
         } else {
-            next(decoded);
+             if (decoded.accessLevel == 1|| decoded.accessLevel == 2) {
+                next(decoded);
+            } else {
+                return res.status(500).send({
+                    auth: false,
+                    message: 'Fail to Authentication.'
+                });
+            }
         }
 	});
 

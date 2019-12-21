@@ -506,7 +506,7 @@ router.get("/getOrganizationSpecificToken/:organizationId", (req, res, next) => 
                 var sId = data[0].superAdminId;
                 var orgId = organizationId;
 
-                var token = jwt.sign({ superAdminId: sId, organizationIdFK: orgId }, config.secret, {
+                var token = jwt.sign({ superAdminId: sId, organizationIdFK: orgId, accessLevel: 1 }, config.secret, {
                     expiresIn: 2400000
                 });
 

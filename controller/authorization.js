@@ -68,7 +68,7 @@ router.post("/login", [
                 var sId = data1[0].superAdminId;
                 var orgId = 1;
 
-                var token = jwt.sign({ superAdminId: sId, organizationIdFK: orgId }, config.secret, {
+                var token = jwt.sign({ superAdminId: sId, organizationIdFK: orgId, accessLevel: 1 }, config.secret, {
                     expiresIn: 2400000
                 });
 
@@ -94,7 +94,7 @@ router.post("/login", [
                             var aId = data[0].adminId;
                             var orgId = data[0].organizationIdFK;
 
-                            var token = jwt.sign({ adminId: aId, organizationIdFK: orgId }, config.secret, {
+                            var token = jwt.sign({ adminId: aId, organizationIdFK: orgId, accessLevel: 2 }, config.secret, {
                                 expiresIn: 2400000
                             });
 

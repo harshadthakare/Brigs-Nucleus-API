@@ -52,6 +52,14 @@ class Dept {
         return sql;
     }
 
+    static getDeptAssignedOrNot(departmentId) {
+        let sql = `SELECT u.userId,d.departmentTitle from user u 
+                   JOIN department d ON u.departmentIdFK = d.departmentId
+                   JOIN asset a ON a.departmentIdFK = d.departmentId
+                   WHERE d.departmentId = ${departmentId}`;
+        return sql;
+    }
+
     static getDeptSQL(organizationIdFK) {
         let sql = `SELECT departmentId,departmentTitle FROM department WHERE organizationIdFK = ${organizationIdFK} AND isDeleted = 0 ORDER BY createdOn DESC`;
         return sql;

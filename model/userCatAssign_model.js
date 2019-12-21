@@ -69,5 +69,26 @@ class UserAssign {
         let sql = `SELECT assignmentTypeId,title FROM assignmenttype WHERE isDeleted = 0`;
         return sql;
     }
+
+    static getAllAssignUsersByCategoryId(categoryId) {
+
+        let sql = `SELECT uc.userCatAssignmentId,uc.userIdFK,u.firstName,u.lastName,a1.title as assignmentType 
+                   FROM usercatassignment uc JOIN assignmenttype a1 ON uc.assignmentTypeIdFK = a1.assignmentTypeId 
+                   JOIN user u ON uc.userIdFK = u.userId
+                   JOIN category c ON uc.masterIdFK = c.categoryId
+                   WHERE c.categoryId = ${categoryId} AND uc.assignmentTypeIdFK = 1 AND uc.isDeleted = 0 ORDER BY uc.createdOn DESC`;
+        return sql;
+    }
+
+    static getAllAssignUsersByAssetId(assetId) {
+
+        let sql = `SELECT uc.userCatAssignmentId,uc.userIdFK,u.firstName,u.lastName,a1.title as assignmentType 
+                   FROM usercatassignment uc JOIN assignmenttype a1 ON uc.assignmentTypeIdFK = a1.assignmentTypeId 
+                   JOIN user u ON uc.userIdFK = u.userId
+                   JOIN asset a ON uc.masterIdFK = a.assetId
+                   WHERE a.assetId = ${assetId} AND uc.assignmentTypeIdFK = 3 AND uc.isDeleted = 0 ORDER BY uc.createdOn DESC`;
+        return sql;
+    }
+
 }
 module.exports = UserAssign;

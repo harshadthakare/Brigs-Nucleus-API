@@ -2,9 +2,7 @@ const express = require("express");
 const db = require("../db/database");
 const Supplier = require("../model/supplier");
 const { verifyToken } = require("../config/verifyJwtToken");
-
 const { check, validationResult } = require('express-validator');
-
 const router = express.Router();
 
 /**
@@ -69,6 +67,7 @@ router.get("/listOfSuppliers/:pageNo", (req, res, next) => {
                                 "currentPage": page,
                                 "totalCount": pageCount1,
                                 "supplier": data,
+                                status: true,
                                 message: "Suppliers List found",
                             });
                         } else {
@@ -76,6 +75,7 @@ router.get("/listOfSuppliers/:pageNo", (req, res, next) => {
                                 "currentPage": page,
                                 "totalCount": pageCount1,
                                 "supplier": [],
+                                status: true,
                                 message: "No record found"
                             });
                         }
@@ -83,7 +83,8 @@ router.get("/listOfSuppliers/:pageNo", (req, res, next) => {
                 });
             }
             else {
-                res.status(400).json({
+                res.status(200).json({
+                    status: false,
                     message: "Something went wrong...!!"
                 });
             }
@@ -126,11 +127,13 @@ router.get("/viewParticularSupplier/:supplierId", (req, res, next) => {
                 if (data && data.length > 0) {
 
                     res.status(200).json({
+                        status: true,
                         message: "Supplier found",
                         supplier: data[0]
                     });
                 } else {
-                    res.status(404).json({
+                    res.status(200).json({
+                        status: false,
                         message: "Supplier Not found"
                     });
                 }
@@ -187,6 +190,7 @@ router.post("/addSupplier", [ // validation rules start
         db.query(supplier.addSupplierSQL(), (err, data) => {
             if (!err) {
                 res.status(200).json({
+                    status: true,
                     message: "Supplier added successfully",
                     Id: data.insertId
                 });
@@ -200,6 +204,7 @@ router.post("/addSupplier", [ // validation rules start
                 }
 
                 res.status(200).json({
+                    status: false,
                     message: message
                 });
             }
@@ -269,6 +274,7 @@ router.put("/updateSupplier/:supplierId", [ // validation rules start
 
                         if (data && data.affectedRows > 0) {
                             res.status(200).json({
+                                status: true,
                                 message: `Supplier updated successfully`,
                                 affectedRows: data.affectedRows
                             })
@@ -282,6 +288,7 @@ router.put("/updateSupplier/:supplierId", [ // validation rules start
                             }
 
                             res.status(400).json({
+                                status: false,
                                 message: message
                             });
                         }
@@ -289,7 +296,8 @@ router.put("/updateSupplier/:supplierId", [ // validation rules start
                 });
             }
             else {
-                res.status(404).json({
+                res.status(200).json({
+                    status: false,
                     message: "Supplier ID is not available"
                 });
             }
@@ -330,31 +338,46 @@ router.put("/deleteSupplier/:supplierId", (req, res, next) => {
 
         db.query(Supplier.checkSupplierId(sId), (err, data) => {
             if (data.length > 0) {
-                db.query(Supplier.deleteSupplierByIdSQL(sId), (err, data) => {
-                    if (!err) {
-                        if (data && data.affectedRows > 0) {
-                            res.status(200).json({
-                                message: "Supplier deleted successfully",
-                                affectedRows: data.affectedRows
-                            });
-                        } else {
-                            res.status(400).json({
-                                message: "Supplier is not deleted"
-                            });
-                        }
+                db.query(Supplier.getSupplierAssignedOrNot(sId), (err2, data1) => {
+                    if (data1 && data1.length == 0) {
+                        db.query(Supplier.deleteSupplierByIdSQL(sId), (err, data) => {
+                            if (!err) {
+                                if (data && data.affectedRows > 0) {
+                                    res.status(200).json({
+                                        status: true,
+                                        message: "Supplier deleted successfully",
+                                        affectedRows: data.affectedRows
+                                    });
+                                } else {
+                                    res.status(200).json({
+                                        status: false,
+                                        message: "Supplier is not deleted"
+                                    });
+                                }
+                            } else {
+                                res.status(200).json({
+                                    status: false,
+                                    message: "Supplier Id not found"
+                                });
+                            }
+                        });
+
                     } else {
-                        res.status(400).json({
-                            message: "Supplier Id not found"
+                        res.status(200).json({
+                            status: false,
+                            message: "Can't delete, Supplier is already assigned!"
                         });
                     }
                 });
             }
             else {
-                res.status(400).json({
+                res.status(200).json({
+                    status: false,
                     message: "Already deleted"
                 });
             }
         });
     })
 });
+
 module.exports = router;

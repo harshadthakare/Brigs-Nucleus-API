@@ -38,7 +38,8 @@ router.get("/allRootCategories", (req, res, next) => {
                     });
                 } else {
                     res.status(200).json({
-                        status: false,
+                        status: true,
+                        "rootCategory": [],
                         message: "Root Category List Not Found"
                     });
                 }

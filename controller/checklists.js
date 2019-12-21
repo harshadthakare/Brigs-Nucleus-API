@@ -82,7 +82,7 @@ router.post("/addChecklist", [
         db.query(checklist.addChecklistSQL(), (err, data) => {
             if (!err) {
                 res.status(200).json({
-                    message: "Checklist added successfully",
+                    message: "Audit added successfully",
                     Id: data.insertId
                 });
             } else {
@@ -167,7 +167,7 @@ router.put("/updateChecklist/:checklistId", [
                     if (!err) {
                         if (data && data.affectedRows > 0) {
                             res.status(200).json({
-                                message: `Checklist updated successfully`,
+                                message: `Audit updated successfully`,
                                 affectedRows: data.affectedRows
                             })
                         } else {
@@ -182,7 +182,7 @@ router.put("/updateChecklist/:checklistId", [
             }
             else {
                 res.status(404).json({
-                    message: "Checklist ID is not available"
+                    message: "Audit ID is not available"
                 });
             }
         });
@@ -226,12 +226,12 @@ router.put("/deleteChecklist/:checklistId", (req, res, next) => {
                     if (!err) {
                         if (data && data.affectedRows > 0) {
                             res.status(200).json({
-                                message: "Checklist deleted successfully",
+                                message: "Audit deleted successfully",
                                 affectedRows: data.affectedRows
                             });
                         } else {
                             res.status(400).json({
-                                message: "Checklist is not deleted"
+                                message: "Audit is not deleted"
                             });
                         }
                     } else {
@@ -292,7 +292,7 @@ router.get("/listOfCheckists/:pageNo", (req, res, next) => {
                                 "currentPage": page,
                                 "totalCount": pageCount1,
                                 "checklist": data,
-                                message: "List of Checklists found",
+                                message: "List of Audits found",
                             });
                         } else {
                             res.status(200).json({
@@ -350,11 +350,11 @@ router.get("/viewParticularChecklist/:checklistId", (req, res, next) => {
 
                     res.status(200).json({
                         checklist: data[0],
-                        message: "Checklist Found"
+                        message: "Audit Found"
                     });
                 } else {
                     res.status(404).json({
-                        message: "Checklist Not Found"
+                        message: "Audit Not Found"
                     });
                 }
             }

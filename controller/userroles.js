@@ -2,9 +2,7 @@ const express = require("express");
 const db = require("../db/database");
 const UserRole = require("../model/UserRole");
 const { verifyToken } = require("../config/verifyJwtToken");
-
 const { check, validationResult } = require('express-validator');
-
 const router = express.Router();
 
 /**
@@ -56,18 +54,44 @@ router.get("/listOfUserRoles/:pageNo", (req, res, next) => {
 
                 db.query(UserRole.getAllUserRolesSQL(tokendata.organizationIdFK, limit, page), (err, data) => {
                     if (!err) {
-                        if (data && data.length > 0) {
-                            res.status(200).json({
-                                "currentPage": page,
-                                "totalCount": pageCount1,
-                                "userroles": data,
-                                message: "UserRoles List Found"
-                            });
+                        if (!err && data && data.length > 0) {
+                            for (let index = 0; index < data.length; index++) {
+                                const element = data[index];
+                                db.query(UserRole.getAllFeatureListArraySQL(element.userRoleId), (err2, data2) => {
+
+                                    element.features = data2;
+                                    data[index] = element;
+
+                                    if (index == data.length - 1 && !err2) {
+                                        if (data && data.length > 0) {
+                                            setTimeout(function () {
+                                                res.status(200).json({
+                                                    status: true,
+                                                    "currentPage": page,
+                                                    "totalCount": pageCount1,
+                                                    "userroles": data,
+                                                    message: "UserRoles List Found"
+                                                });
+                                            }, 100)
+
+                                        } else {
+                                            res.status(200).json({
+                                                "currentPage": page,
+                                                "totalCount": pageCount1,
+                                                "userroles": [],
+                                                status: true,
+                                                message: "No record found"
+                                            });
+                                        }
+                                    }
+                                })
+                            }
                         } else {
                             res.status(200).json({
                                 "currentPage": page,
                                 "totalCount": pageCount1,
                                 "userroles": [],
+                                status: true,
                                 message: "No record found"
                             });
                         }
@@ -76,6 +100,7 @@ router.get("/listOfUserRoles/:pageNo", (req, res, next) => {
             }
             else {
                 res.status(200).json({
+                    status: false,
                     message: "Something went wrong...!!"
                 });
             }
@@ -121,11 +146,13 @@ router.get("/viewParticularUserRole/:userRoleId", (req, res, next) => {
                 if (data && data.length > 0) {
 
                     res.status(200).json({
+                        status: true,
                         message: "UserRole found",
                         userrole: data[0]
                     });
                 } else {
-                    res.status(404).json({
+                    res.status(200).json({
+                        status: false,
                         message: "UserRole Not found"
                     });
                 }
@@ -133,6 +160,73 @@ router.get("/viewParticularUserRole/:userRoleId", (req, res, next) => {
         });
     })
 });
+
+/**
+ * @swagger
+ * /userroles/listOfFeatures:
+ *   get:
+ *     tags:
+ *       - UserRole
+ *     description: Returns List Of All Features
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: Authorization
+ *         description: token
+ *         in: header
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK
+ *       404:
+ *         description: Not found
+ *       400:
+ *         description: Bad request
+ */
+router.get("/listOfFeatures", (req, res, next) => {
+    verifyToken(req, res, tokendata => {
+
+        db.query(UserRole.getAllFeatureListSQL(), (err, data) => {
+            if (!err) {
+                if (data && data.length > 0) {
+
+                    res.status(200).json({
+                        status: true,
+                        message: "Feature List found",
+                        features: data
+                    });
+                } else {
+                    res.status(200).json({
+                        status: false,
+                        message: "Feature List Not found"
+                    });
+                }
+            }
+        });
+    })
+});
+/**
+ * @swagger
+ * definitions:
+ *   addUserRoles :
+ *     properties:
+ *      title:
+ *         type: string
+ *      features:        
+ *         type: array
+ *         items: 
+ *           $ref: '#/definitions/addFeatures'
+ */
+
+/**
+ * @swagger
+ * definitions:
+ *   addFeatures :
+ *     type: object
+ *     properties:
+ *       featureIdFK:
+ *           type: integer 
+ */
 /**
  * @swagger
  * /userroles/addUserRole:
@@ -144,8 +238,8 @@ router.get("/viewParticularUserRole/:userRoleId", (req, res, next) => {
  *       - application/json
  *     parameters:
  *       - name: UserRole
- *         description:  Add Title of UserRole
- *         in: body
+ *         description: UserRole object from body
+ *         in: body 
  *         required: true
  *       - name: Authorization
  *         description: token
@@ -159,38 +253,101 @@ router.get("/viewParticularUserRole/:userRoleId", (req, res, next) => {
  *       400:
  *         description: Bad request
  *         schema:
- *           $ref: '#/definitions/UserRoles'
+ *           $ref: '#/definitions/addUserRoles'
  */
-
-router.post("/addUserRole", [
-    // validation rules start 
-    check('title').trim().isAlpha().withMessage('Only characters are allowed'),
-    // validation rules end 
-], (req, res, next) => {
+router.post("/addUserRole", (req, res, next) => {
     verifyToken(req, res, tokendata => {
 
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(422).json({ errors: errors.array() });
-        }
         let urid = new UserRole(req.body);
         urid.organizationIdFK = tokendata.organizationIdFK;
-
+        let features = req.body.features;
         db.query(urid.addUserRoleSQL(), (err, data) => {
-            if (!err) {
-                res.status(200).json({
-                    message: "UserRole added successfully",
-                    Id: data.insertId
-                });
+            if (data) {
+                userRoleIdFK = data.insertId;
+                if (!err) {
+                    if (features.length > 0) {
+                        for (let index = 0; index < features.length; index++) {
+                            const element = features[index];
+                            let feature = new UserRole(element);
+
+                            db.query(feature.addFeatureAssignmentSQL(userRoleIdFK), (err1, data1) => {
+                                if (index == features.length - 1 && !err) {
+                                    if (data1) {
+                                        res.status(200).json({
+                                            status: true,
+                                            message: "User Role added successfully"
+                                        });
+                                    }
+                                }
+                                if (err) {
+                                    res.status(200).json({
+                                        status: false,
+                                        message: err.message
+                                    });
+                                    return;
+                                }
+                            })
+                        }
+                    } else {
+                        res.status(200).json({
+                            status: true,
+                            message: "User Role added successfully"
+                        });
+                    }
+                }
             } else {
-                res.status(400).json({
-                    message: "Something went wrong, Please try again"
+                res.status(200).json({
+                    status: false,
+                    message: "Something Went Wrong Please Try Again"
                 });
             }
         });
     })
 });
+/**
+ * @swagger
+ * /userroles/listOfFeatures:
+ *   get:
+ *     tags:
+ *       - UserRole
+ *     description: Returns List Of All Features
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: Authorization
+ *         description: token
+ *         in: header
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK
+ *       404:
+ *         description: Not found
+ *       400:
+ *         description: Bad request
+ */
+router.get("/listOfFeatures", (req, res, next) => {
+    verifyToken(req, res, tokendata => {
 
+        db.query(UserRole.getAllFeatureListSQL(), (err, data) => {
+            if (!err) {
+                if (data && data.length > 0) {
+
+                    res.status(200).json({
+                        status: true,
+                        message: "Feature List found",
+                        features: data
+                    });
+                } else {
+                    res.status(200).json({
+                        status: false,
+                        message: "Feature List Not found"
+                    });
+                }
+            }
+        });
+    })
+});
 /**
  * @swagger
  * /userroles/UpdateUserRole/{userRoleId}:
@@ -223,55 +380,50 @@ router.post("/addUserRole", [
  *       400:
  *         description: Bad request
  *         schema:
- *           $ref: '#/definitions/UserRoles'
+ *           $ref: '#/definitions/addUserRoles'
  */
-
-router.put("/UpdateUserRole/:userRoleId", [
-    // validation rules start 
-    check('title').trim().isAlpha().withMessage('Only characters are allowed'),
-    // validation rules end 
-], (req, res, next) => {
+router.put("/updateUserRole/:userRoleId", (req, res, next) => {
     verifyToken(req, res, tokendata => {
-
-        // send response of validation to client
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(422).json({ errors: errors.array() });
-        }
-        // ....!  end send response of validation to client
-
-        var urId = req.params.userRoleId;
+        let userRoleId = req.params.userRoleId;
         let userrole = new UserRole(req.body);
+        let features = req.body.features;
+        db.query(userrole.updateUserRoleByIdSQL(userRoleId), (err, data) => {
+            if (data) {
+                if (!err) {
+                    db.query(UserRole.deleteFeatureAssignmentSQL(userRoleId), (err1, data1) => {
+                        if (features.length > 0) {
+                            for (let index = 0; index < features.length; index++) {
+                                const element = features[index];
+                                let feature = new UserRole(element);
 
-        db.query(UserRole.checkUserroleId(urId), (err, data) => {
-            if (data.length > 0) {
-                db.query(userrole.updateUserRoleByIdSQL(urId), (err, data) => {
-                    if (!err) {
-
-                        if (data && data.affectedRows > 0) {
-                            res.status(200).json({
-                                message: `UserRole updated successfully`,
-                                affectedRows: data.affectedRows
-                            })
+                                db.query(feature.addFeatureAssignmentSQL(userRoleId), (err2, data2) => {
+                                    if (index == features.length - 1 && !err2) {
+                                        if (data2) {
+                                            res.status(200).json({
+                                                status: true,
+                                                message: "User Role Updated successfully"
+                                            });
+                                        }
+                                    }
+                                })
+                            }
                         } else {
-                            res.status(400).json({
-                                message: "Something went wrong, Please try again"
+                            res.status(200).json({
+                                status: false,
+                                message: "User Role not updated"
                             });
                         }
-                    } else {
-                        console.log(err.message);
-                    }
+                    })
+                }
+            } else {
+                res.status(200).json({
+                    status: false,
+                    message: "Something Went Wrong Please Try Again"
                 });
             }
-            else {
-                res.status(404).json({
-                    message: "UserRole ID is not available"
-                });
-            }
-        });
-    });
-});
-
+        })
+    })
+})
 /**
  * @swagger
  * /userroles/deleteUserRole/{userRoleId}:
@@ -299,36 +451,51 @@ router.put("/UpdateUserRole/:userRoleId", [
  *       400:
  *         description: Bad request
  */
-
 router.put("/deleteUserRole/:userRoleId", (req, res, next) => {
     verifyToken(req, res, tokendata => {
         var urId = req.params.userRoleId;
         db.query(UserRole.checkUserroleId(urId), (err, data) => {
             if (data.length > 0) {
-                db.query(UserRole.deleteUserRoleByIdSQL(urId), (err, data) => {
-                    if (!err) {
-                        if (data && data.affectedRows > 0) {
-                            res.status(200).json({
-                                message: "User role deleted successfully",
-                                affectedRows: data.affectedRows
-                            });
-                        } else {
-                            res.status(400).json({
-                                message: "User role is not deleted"
-                            });
-                        }
-                    } else {
-                        console.log(err.message);
+                db.query(UserRole.getUserroleAssignedOrNot(urId), (err2, data2) => {
+                    if (data2 && data2.length == 0) {
+                        db.query(UserRole.deleteUserRoleByIdSQL(urId), (err, data) => {
+                            if (!err) {
+                                db.query(UserRole.deleteFeatureAssignmentSQL(urId), (err1, data1) => {
+                                    if (data1 && data1.affectedRows > 0) {
+                                        res.status(200).json({
+                                            status: true,
+                                            message: "User Role deleted successfully",
+                                            affectedRows: data1.affectedRows
+                                        });
+                                    } else {
+                                        res.status(200).json({
+                                            status: false,
+                                            message: "User Role is not deleted"
+                                        });
+                                    }
+                                })
+
+                            } else {
+                                console.log(err.message);
+                            }
+                        });
                     }
-                });
+                    else {
+                        res.status(200).json({
+                            status: false,
+                            message: "Can't delete, User Role is already assigned!"
+                        });
+                    }
+                })
             }
             else {
-                res.status(400).json({
+                res.status(200).json({
+                    status: false,
                     message: "Already deleted"
                 });
             }
         });
-
     })
 });
+
 module.exports = router;

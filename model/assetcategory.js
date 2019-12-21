@@ -48,5 +48,12 @@ class AssetCategory {
         return sql;
     }
 
+    static getCategoryAssignedOrNot(categoryId) {
+        let sql = `SELECT c.categoryId,a.assetTitle FROM asset a 
+                   JOIN assetcatrelation a1 ON a1.assetIdFK = a.assetId 
+                   JOIN category c ON a1.categoryIdFK = c.categoryId WHERE c.categoryId = ${categoryId}`;
+        return sql;
+    }
+
 }
 module.exports = AssetCategory;

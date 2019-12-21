@@ -48,5 +48,11 @@ class Supplier {
         WHERE supplierId = ${supplierId}`;
         return sql;
     }
+
+    static getSupplierAssignedOrNot(supplierId) {
+        let sql = `SELECT s.supplierId,a.assetTitle from asset a JOIN supplier s ON a.supplierIdFK = s.supplierId WHERE s.supplierId = ${supplierId}`;
+        return sql;
+    }
+
 }
 module.exports = Supplier;

@@ -182,9 +182,9 @@ router.get("/adminSearch/", [
 
 router.post("/addAdmin", [
     // validation rules start 
-    check('firstName').trim().isAlpha().withMessage('Only characters are allowed'),
-    check('lastName').trim().isAlpha().withMessage('Only characters are allowed'),
-    check('organizationIdFK').trim().custom((value, { req }) => {
+    check('firstName').isAlpha().withMessage('Only characters are allowed'),
+    check('lastName').isAlpha().withMessage('Only characters are allowed'),
+    check('organizationIdFK').custom((value, { req }) => {
         if (value < 0 || isNaN(value)) {
             throw new Error('Value can not be less than 0');
         }
@@ -259,9 +259,9 @@ router.post("/addAdmin", [
 
 router.put("/updateAdmin/:adminId", [
     // validation rules start 
-    check('firstName').trim().isAlpha().withMessage('Only characters are allowed'),
-    check('lastName').trim().isAlpha().withMessage('Only characters are allowed'),
-    check('organizationIdFK').trim().custom((value, { req }) => {
+    check('firstName').isAlpha().withMessage('Only characters are allowed'),
+    check('lastName').isAlpha().withMessage('Only characters are allowed'),
+    check('organizationIdFK').custom((value, { req }) => {
         if (value < 0 || isNaN(value)) {
             throw new Error('Value can not be less than 0');
         }

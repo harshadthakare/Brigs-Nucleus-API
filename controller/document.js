@@ -612,23 +612,28 @@ router.post("/addDocument", [
         }
         // ....!  end send response of validation to client
         let obj = req.body;
-        let documentCode = new Date().getTime()
-        obj.documentCode = documentCode;
-        obj.organizationIdFK = tokendata.organizationIdFK;
-        let document = new Document(obj);
 
-        db.query(document.addDocumentSQL(), (err, data) => {
+        db.query(Document.getOrganizationCodeById(tokendata.organizationIdFK), (err1, data1) => {
 
-            if (!err) {
-                res.status(200).json({
-                    message: "Document added successfully",
-                    Id: data.insertId
-                });
-            } else {
-                res.status(400).json({
-                    message: "Something went wrong, Please try again"
-                });
-            }
+            var organizationCode = data1[0].organizationCode;
+            let documentCode = organizationCode + new Date().getTime()
+            obj.documentCode = documentCode;
+            obj.organizationIdFK = tokendata.organizationIdFK;
+            let document = new Document(obj);
+
+            db.query(document.addDocumentSQL(), (err, data) => {
+
+                if (!err) {
+                    res.status(200).json({
+                        message: "Document added successfully",
+                        Id: data.insertId
+                    });
+                } else {
+                    res.status(400).json({
+                        message: "Something went wrong, Please try again"
+                    });
+                }
+            });
         });
     })
 });
@@ -677,24 +682,29 @@ router.post("/addDocumate", [
         }
         // ....!  end send response of validation to client
         let obj = req.body;
-        let documentCode = new Date().getTime()
-        obj.documentCode = documentCode;
-        obj.organizationIdFK = tokendata.organizationIdFK;
-        let document = new Document(obj);
 
-        db.query(document.addDocumateSQL(), (err, data) => {
+        db.query(Document.getOrganizationCodeById(tokendata.organizationIdFK), (err1, data1) => {
 
-            if (!err) {
-                res.status(200).json({
-                    message: "Document added successfully",
-                    Id: data.insertId
-                });
-            } else {
-                res.status(400).json({
-                    message: "Something went wrong, Please try again"
-                });
-            }
-        });
+            var organizationCode = data1[0].organizationCode;
+            let documentCode = organizationCode + new Date().getTime()
+            obj.documentCode = documentCode;
+            obj.organizationIdFK = tokendata.organizationIdFK;
+            let document = new Document(obj);
+
+            db.query(document.addDocumateSQL(), (err, data) => {
+
+                if (!err) {
+                    res.status(200).json({
+                        message: "Document added successfully",
+                        Id: data.insertId
+                    });
+                } else {
+                    res.status(400).json({
+                        message: "Something went wrong, Please try again"
+                    });
+                }
+            });
+        })
     })
 });
 
@@ -957,6 +967,7 @@ router.put("/deleteDocument/:documentId", (req, res, next) => {
  *       500:
  *         description: Please Select the File
  */
+
 router.post('/uploadCategoryDoc', uploadDoc.single('file'), (req, res, next) => {
     verifyToken(req, res, tokendata => {
         if (!req.file) {
@@ -997,6 +1008,7 @@ router.post('/uploadCategoryDoc', uploadDoc.single('file'), (req, res, next) => 
  *       400:
  *         description: Bad request
  */
+
 router.get("/selectDocumentType", (req, res, next) => {
     verifyToken(req, res, tokendata => {
 

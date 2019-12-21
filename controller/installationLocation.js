@@ -2,7 +2,6 @@ const express = require("express");
 const db = require("../db/database");
 const InstallationLocationType = require("../model/installationLocation_model");
 const router = express.Router();
-const { check, validationResult } = require('express-validator');
 const { verifyToken } = require("../config/verifyJwtToken");
 
 /**
@@ -43,13 +42,14 @@ const { verifyToken } = require("../config/verifyJwtToken");
 *           $ref: '#/definitions/InstallationLocation'   
 */
 router.post("/addInstallationLocation", [
+
 ], (req, res, next) => {
     verifyToken(req, res, tokendata => {
         let obj = req.body;
         let installationLocationType = new InstallationLocationType(obj);
         obj.organizationIdFK = tokendata.organizationIdFK;
 
-        db.query(installationLocationType.addInstallationLocationTypeSQL(obj.organizationIdFK), (err, data) => {          
+        db.query(installationLocationType.addInstallationLocationTypeSQL(obj.organizationIdFK), (err, data) => {
             if (!err) {
                 res.status(200).json({
                     status: true,
@@ -134,7 +134,8 @@ router.put("/updateInstallationLocation/:installationLocationTypeId", [
                 });
             }
             else {
-                res.status(404).json({
+                res.status(200).json({
+                    status: false,
                     message: "installationLocationType Id is not available"
                 });
             }
@@ -175,27 +176,36 @@ router.put("/deleteInstallationLocation/:installationLocationTypeId", (req, res,
 
         db.query(InstallationLocationType.checkInstallationLocationTypeIdSQL(installationLocationTypeId), (err, data) => {
             if (data.length > 0) {
-                db.query(InstallationLocationType.deleteInstallationlocationtypeByIdSQL(installationLocationTypeId), (err, data) => {
-                    if (!err) {
-                        if (data && data.affectedRows > 0) {
-                            res.status(200).json({
-                                status: true,
-                                message: "InstallationLocation deleted successfully",
-                                affectedRows: data.affectedRows
-                            });
-                        } else {
-                            res.status(200).json({
-                                status: false,
-                                message: "InstallationLocation is not deleted"
-                            });
-                        }
+                db.query(InstallationLocationType.getLocationAssignedOrNot(installationLocationTypeId), (err1, data1) => {
+                    if (data1 && data1.length == 0) {
+                        db.query(InstallationLocationType.deleteInstallationlocationtypeByIdSQL(installationLocationTypeId), (err, data) => {
+                            if (!err) {
+                                if (data && data.affectedRows > 0) {
+                                    res.status(200).json({
+                                        status: true,
+                                        message: "InstallationLocation deleted successfully",
+                                        affectedRows: data.affectedRows
+                                    });
+                                } else {
+                                    res.status(200).json({
+                                        status: false,
+                                        message: "InstallationLocation is not deleted"
+                                    });
+                                }
+                            } else {
+                                res.status(200).json({
+                                    status: false,
+                                    message: "Something Went Wrong,Please Try Again...!"
+                                });
+                            }
+                        });
                     } else {
                         res.status(200).json({
                             status: false,
-                            message: "Something Went Wrong,Please Try Again...!"
+                            message: "Can't delete, InstallationLocation is already assigned!"
                         });
                     }
-                });
+                })
             }
             else {
                 res.status(200).json({
@@ -242,7 +252,7 @@ router.get("/listOfInstallationLocation", (req, res, next) => {
                 }
                 else {
                     res.status(200).json({
-                        status: false,
+                        status: true,
                         installationLocationList: [],
                         message: "Installation Location List Not Found"
                     });

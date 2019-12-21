@@ -2,9 +2,7 @@ const express = require("express");
 const db = require("../db/database");
 const Manufacturer = require("../model/manufacturer");
 const { verifyToken } = require("../config/verifyJwtToken");
-
 const { check, validationResult } = require('express-validator');
-
 const router = express.Router();
 
 /**
@@ -59,6 +57,7 @@ router.get("/listOfManufacturer/:pageNo", (req, res, next) => {
                                 "currentPage": page,
                                 "totalCount": pageCount1,
                                 "manufacturer": data,
+                                status: true,
                                 message: "Manufracturer List found",
                             });
                         } else {
@@ -66,6 +65,7 @@ router.get("/listOfManufacturer/:pageNo", (req, res, next) => {
                                 "currentPage": page,
                                 "totalCount": pageCount1,
                                 "manufacturer": [],
+                                status: true,
                                 message: "No record found"
                             });
                         }
@@ -73,7 +73,8 @@ router.get("/listOfManufacturer/:pageNo", (req, res, next) => {
                 });
             }
             else {
-                res.status(400).json({
+                res.status(200).json({
+                    status: false,
                     message: "Something went wrong...!!"
                 });
             }
@@ -110,16 +111,19 @@ router.get("/listOfManufacturer/:pageNo", (req, res, next) => {
 router.get("/viewParticularManufacturer/:manufacturerId", (req, res, next) => {
     verifyToken(req, res, tokendata => {
         let mid = req.params.manufacturerId;
+
         db.query(Manufacturer.getManufacturerByIdSQL(mid), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
 
                     res.status(200).json({
+                        status: true,
                         message: "Manufacturer found",
                         department: data[0]
                     });
                 } else {
-                    res.status(404).json({
+                    res.status(200).json({
+                        status: false,
                         message: "Manufacturer Not found"
                     });
                 }
@@ -175,6 +179,7 @@ router.post("/addManufacturer", [ // validation rules start
         db.query(manufacturer.addManufacturerSQL(), (err, data) => {
             if (!err) {
                 res.status(200).json({
+                    status: true,
                     message: "Manufacturer added successfully",
                     Id: data.insertId
                 });
@@ -188,6 +193,7 @@ router.post("/addManufacturer", [ // validation rules start
                 }
 
                 res.status(200).json({
+                    status: false,
                     message: message
                 });
             }
@@ -254,6 +260,7 @@ router.put("/updateManufacturer/:manufacturerId", [ // validation rules start
 
                         if (data && data.affectedRows > 0) {
                             res.status(200).json({
+                                status: true,
                                 message: `Manufacturer updated successfully`,
                                 affectedRows: data.affectedRows
                             });
@@ -266,7 +273,8 @@ router.put("/updateManufacturer/:manufacturerId", [ // validation rules start
                                 message = 'Something went wrong'
                             }
 
-                            res.status(400).json({
+                            res.status(200).json({
+                                status: false,
                                 message: message
                             });
                         }
@@ -274,7 +282,8 @@ router.put("/updateManufacturer/:manufacturerId", [ // validation rules start
                 });
             }
             else {
-                res.status(404).json({
+                res.status(200).json({
+                    status: false,
                     message: "Manufacturer ID is not available"
                 });
             }
@@ -314,29 +323,42 @@ router.put("/deleteManufacturer/:manufacturerId", (req, res, next) => {
 
         db.query(Manufacturer.checkManufacturerId(mId), (err, data) => {
             if (data.length > 0) {
-                db.query(Manufacturer.deleteManufacturerByIdSQL(mId), (err, data) => {
-                    if (!err) {
-                        if (data && data.affectedRows > 0) {
-                            res.status(200).json({
-                                message: "Manufacturer deleted successfully",
-                                affectedRows: data.affectedRows
-                            });
-                        } else {
-                            res.status(400).json({
-                                message: "Manufacturer is not deleted"
-                            });
-                        }
+                db.query(Manufacturer.getManufacturerAssignedOrNot(mId), (err1, data1) => {
+                    if (data1 && data1.length == 0) {
+                        db.query(Manufacturer.deleteManufacturerByIdSQL(mId), (err, data) => {
+                            if (!err) {
+                                if (data && data.affectedRows > 0) {
+                                    res.status(200).json({
+                                        status: true,
+                                        message: "Manufacturer deleted successfully",
+                                        affectedRows: data.affectedRows
+                                    });
+                                } else {
+                                    res.status(200).json({
+                                        status: false,
+                                        message: "Manufacturer is not deleted"
+                                    });
+                                }
+                            } else {
+                                console.log(err.message);
+                            }
+                        });
                     } else {
-                        console.log(err.message);
+                        res.status(200).json({
+                            status: false,
+                            message: "Can't delete, Manufacturer is already assigned!"
+                        });
                     }
                 });
             }
             else {
-                res.status(400).json({
+                res.status(200).json({
+                    status: false,
                     message: "Already deleted"
                 });
             }
         });
     })
 });
+
 module.exports = router;

@@ -333,50 +333,61 @@ router.post("/addQuestion", [
         let options = req.body.options;
         let question = new Question(req.body);
 
-        db.query(question.addQuestionSQL(), (err, data) => {
+        db.query(Question.getMaxSequenceNo(), (err2, data2) => {
+            var sequenceNo = data2[0].maxSequenceNo;
 
-            if (data) {
-                let questionIdFK = data.insertId;
+            if (sequenceNo == 0 && sequenceNo == null) {
+                sequenceNumber = 1
+            }
+            else {
+                sequenceNumber = sequenceNo + 1;
+            }
 
-                if (!err) {
-                    if (options.length > 0) {
-                        for (let index = 0; index < options.length; index++) {
+            db.query(question.addQuestionSQL(sequenceNumber), (err, data) => {
 
-                            const element = options[index];
-                            let option = new Question(element);
+                if (data) {
+                    let questionIdFK = data.insertId;
 
-                            db.query(option.addQuestionOptionSQL(questionIdFK), (err, data1) => {
-                                if (index == options.length - 1 && !err) {
-                                    if (data1) {
-                                        res.status(200).json({
-                                            message: "Question details added successfully"
-                                        });
+                    if (!err) {
+                        if (options.length > 0) {
+                            for (let index = 0; index < options.length; index++) {
+
+                                const element = options[index];
+                                let option = new Question(element);
+
+                                db.query(option.addQuestionOptionSQL(questionIdFK), (err, data1) => {
+                                    if (index == options.length - 1 && !err) {
+                                        if (data1) {
+                                            res.status(200).json({
+                                                message: "Question details added successfully"
+                                            });
+                                        }
                                     }
-                                }
 
-                                if (err) {
-                                    res.status(400).json({
-                                        message: err.message
-                                    });
-                                    return;
-                                }
+                                    if (err) {
+                                        res.status(400).json({
+                                            message: err.message
+                                        });
+                                        return;
+                                    }
+                                });
+                            }
+                        }
+                        else {
+                            res.status(200).json({
+                                message: "Question details added successfully"
                             });
                         }
                     }
-                    else {
-                        res.status(200).json({
-                            message: "Question details added successfully"
-                        });
-                    }
                 }
-            }
-            else {
-                res.status(400).json({
-                    message: "Something Went Wrong Please Try Again"
-                });
-            }
+                else {
+                    res.status(400).json({
+                        message: "Something Went Wrong Please Try Again"
+                    });
+                }
 
-        })
+            })
+        });
     });
 });
 
@@ -747,63 +758,73 @@ router.post("/addLinkQuestion/:questionOptionId", [
         let question = new Question(req.body);
         let optionId = req.params.questionOptionId;
 
-        db.query(question.addLinkQuestionSQL(), (err, data) => {
+        db.query(Question.getMaxSequenceNo(), (err2, data2) => {
+            var sequenceNo = data2[0].maxSequenceNo;
 
-            if (data) {
-                let questionIdFK = data.insertId;
+            if (sequenceNo == 0 && sequenceNo == null) {
+                sequenceNumber = 1
+            }
+            else {
+                sequenceNumber = sequenceNo + 1;
+            }
 
-                if (!err) {
-                    if (options.length > 0) {
-                        for (let index = 0; index < options.length; index++) {
+            db.query(question.addLinkQuestionSQL(sequenceNumber), (err, data) => {
 
-                            const element = options[index];
-                            let option = new Question(element);
+                if (data) {
+                    let questionIdFK = data.insertId;
 
-                            db.query(option.addQuestionOptionSQL(questionIdFK), (err, data1) => {
+                    if (!err) {
+                        if (options.length > 0) {
+                            for (let index = 0; index < options.length; index++) {
 
-                                if (index == options.length - 1 && !err) {
-                                    if (data1) {
-                                        db.query(option.updateOption(questionIdFK, optionId), (err, data2) => {
+                                const element = options[index];
+                                let option = new Question(element);
 
-                                            if (!err && data2) {
-                                                res.status(200).json({
-                                                    message: "Question details added successfully"
-                                                });
-                                            }
-                                        });
+                                db.query(option.addQuestionOptionSQL(questionIdFK), (err, data1) => {
+
+                                    if (index == options.length - 1 && !err) {
+                                        if (data1) {
+                                            db.query(option.updateOption(questionIdFK, optionId), (err, data2) => {
+
+                                                if (!err && data2) {
+                                                    res.status(200).json({
+                                                        message: "Question details added successfully"
+                                                    });
+                                                }
+                                            });
+                                        }
                                     }
-                                }
 
-                                if (err) {
-                                    res.status(400).json({
-                                        message: err.message
+                                    if (err) {
+                                        res.status(400).json({
+                                            message: err.message
+                                        });
+                                        return;
+                                    }
+                                });
+                            }
+                        }
+                        else {
+
+                            let option = new Question();
+                            db.query(option.updateOption(questionIdFK, optionId), (err, data2) => {
+
+                                if (!err && data2) {
+                                    res.status(200).json({
+                                        message: "Question details added successfully"
                                     });
-                                    return;
                                 }
                             });
                         }
                     }
-                    else {
-
-                        let option = new Question();
-                        db.query(option.updateOption(questionIdFK, optionId), (err, data2) => {
-
-                            if (!err && data2) {
-                                res.status(200).json({
-                                    message: "Question details added successfully"
-                                });
-                            }
-                        });
-                    }
                 }
-            }
-            else {
-                res.status(400).json({
-                    message: "Something Went Wrong Please Try Again"
-                });
-            }
-
-        })
+                else {
+                    res.status(400).json({
+                        message: "Something Went Wrong Please Try Again"
+                    });
+                }
+            })
+        });
     });
 });
 
@@ -1001,4 +1022,161 @@ router.get("/checklistQuestionsWithoutPagination/:checklistId", (req, res, next)
         });
     })
 });
+
+/**
+ * @swagger
+ * /questions/sequenceQuestionsList/{checklistId}:
+ *   get:
+ *     tags:
+ *       - Question
+ *     description: Returns list of all questions by checklist id 
+ *     produces:    
+ *       - application/json
+ *     parameters:
+ *       - name: checklistId
+ *         description: "enter checklist Id"
+ *         in: path
+ *         required: true
+ *       - name: Authorization
+ *         description: token
+ *         in: header
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK
+ *       404:
+ *         description: Not found
+ *       400:
+ *         description: Bad request
+ */
+
+router.get("/sequenceQuestionsList/:checklistId", (req, res, next) => {
+    verifyToken(req, res, tokendata => {
+        let checklistId = req.params.checklistId;
+
+        db.query(Question.getAllSequenceQuestionsSQL(checklistId), (err, data) => {
+            let question = data;
+
+            if (!err && data && data.length > 0) {
+
+                for (let index = 0; index < question.length; index++) {
+                    const element = question[index];
+                    db.query(Question.getOptionsListSQL(element.questionId), (err2, data2) => {
+
+                        if (!err2) {
+                            element.questionOptions = data2;
+                            if ((data.length - 1) == index) {
+                                setTimeout(function () {
+                                    res.status(200).json({
+                                        "question": question,
+                                        message: "Questions List found",
+                                    });
+                                }, 100)
+                            }
+                        }
+                    })
+                }
+            } else {
+                res.status(200).json({
+                    "question": question,
+                    message: "No record found"
+                });
+            }
+        });
+    })
+});
+
+/**
+ * @swagger
+ * definitions:
+ *   updateSequenceQuestion :
+ *     properties:
+ *       sequenceNumber:        
+ *          type: array
+ *          items: 
+ *              $ref: '#/definitions/updateSequenceQuestions'
+ */
+
+/**
+ * @swagger
+ * definitions:
+ *   updateSequenceQuestions :
+ *     type: object
+ *     properties:
+ *       questionId:
+ *          type: integer
+ *       sequenceNo:
+ *          type: integer 
+ */
+
+/**
+ * @swagger
+ * /questions/updateSequenceQuestion:
+ *   put:
+ *     tags:
+ *       - Question
+ *     description: Add Question details
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: Question
+ *         description: question object
+ *         in: body
+ *         required: true
+ *       - name: Authorization
+ *         description: token
+ *         in: header
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK
+ *       404:
+ *         description: Not found
+ *       400:
+ *         description: Bad request
+ *         schema:
+ *           $ref: '#/definitions/updateSequenceQuestion'
+ */
+
+router.put("/updateSequenceQuestion", (req, res, next) => {
+    verifyToken(req, res, tokendata => {
+
+        let sequenceNumber = req.body.sequenceNumber;
+        let question = new Question(req.body);
+
+        for (let index = 0; index < sequenceNumber.length; index++) {
+            const element = sequenceNumber[index];
+            let sequenceNo = new Question(element);
+            let questionId = element.questionId;
+
+            db.query(sequenceNo.updateSequenceQuestionByIdSQL(questionId), (err, data) => {
+
+                if (data) {
+
+                    if (index == sequenceNumber.length - 1 && !err) {
+                        if (data && data.affectedRows > 0) {
+                            res.status(200).json({
+                                message: "Sequnce Question updated successfully",
+                                affectedRows: data.affectedRows,
+                                status: true
+                            })
+                        } else {
+                            res.status(400).json({
+                                message: "Something went wrong, Please try again",
+                                status: false
+                            });
+                        }
+                    }
+                }
+                else {
+                    res.status(400).json({
+                        message: "Something Went Wrong, Please Try Again",
+                        status: false
+                    });
+                }
+            })
+        }
+    });
+});
+
 module.exports = router;

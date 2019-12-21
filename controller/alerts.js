@@ -56,6 +56,7 @@ router.get("/AlertList/:pageNo", (req, res, next) => {
                                         "totalCount": pageCount1,
                                         "totalAlerts": totalAlerts,
                                         "alert": data,
+                                        status: true,
                                         message: "Alert List found",
                                     });
                                 } else {
@@ -64,6 +65,7 @@ router.get("/AlertList/:pageNo", (req, res, next) => {
                                         "totalCount": pageCount1,
                                         "totalAlerts": 0,
                                         "alert": [],
+                                        status: true,
                                         message: "No record found"
                                     });
                                 }

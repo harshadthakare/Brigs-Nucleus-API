@@ -46,5 +46,30 @@ class UserRole {
         WHERE userRoleId = ${userRoleId}`;
         return sql;
     }
+    static getAllFeatureListSQL() {
+        let sql = `SELECT featureId, featureCode, purpose FROM feature WHERE isDeleted = 0`;
+        return sql;
+    }
+    static getAllFeatureListArraySQL(userRoleId) {
+        let sql = `SELECT f.featureAssignmentId,f.featureIdFK,f1.featureCode,f1.purpose FROM featureassignment f
+         JOIN feature f1 ON f1.featureId = f.featureIdFK 
+         WHERE f.userRoleIdFK = ${userRoleId} AND f.isDeleted = 0`;
+        return sql;
+    }
+    addFeatureAssignmentSQL(userRoleId) {
+        let sql = `INSERT INTO featureassignment (featureIdFK,userRoleIdFK)
+                   VALUES (${this.featureIdFK},${userRoleId})`;
+
+        return sql;
+    }
+    static deleteFeatureAssignmentSQL(userRoleId) {
+        let sql = `DELETE FROM featureassignment WHERE userRoleIdFK = ${userRoleId};`;
+        return sql;
+    }
+    static getUserroleAssignedOrNot(userRoleId) {
+        let sql = `SELECT u.userId,u1.title FROM user u JOIN userrole u1 ON u.userRoleIdFK = u1.userRoleId WHERE u1.userRoleId = ${userRoleId}`;
+        return sql;
+    }
 }
+
 module.exports = UserRole;

@@ -36,7 +36,7 @@ class Question {
         let sql = `SELECT c.checklistId,q.questionId,qt.title as questionType,q.title as questionDescription 
             FROM question q JOIN questiontype qt on q.questionTypeIdFK = qt.questionTypeId
             JOIN checklist c on q.checkListIdFK = c.checklistId
-            WHERE c.checklistId = ${checkListId} AND q.isDeleted = 0 ORDER BY q.createdOn DESC ${limitString}`;
+            WHERE c.checklistId = ${checkListId} AND q.isDeleted = 0 ORDER BY q.sequenceNo DESC ${limitString}`;
         return sql;
     }
 
@@ -45,20 +45,25 @@ class Question {
         return sql;
     }
 
-    addQuestionSQL() {
-        let sql = `INSERT into question (title,questionTypeIdFK,checkListIdFK,isCompulsory) 
-                VALUES ("${this.title}",${this.questionTypeIdFK},${this.checkListIdFK},${this.isCompulsory})`;
+    addQuestionSQL(sequenceNo) {
+        let sql = `INSERT into question (title,questionTypeIdFK,checkListIdFK,isCompulsory,sequenceNo) 
+                VALUES ('${this.title}',${this.questionTypeIdFK},${this.checkListIdFK},${this.isCompulsory},${sequenceNo})`;
         return sql;
     }
 
-    addLinkQuestionSQL() {
-        let sql = `INSERT into question (title,questionTypeIdFK,checkListIdFK,isRefer,isCompulsory) 
-                VALUES ("${this.title}",${this.questionTypeIdFK},${this.checkListIdFK},1,${this.isCompulsory})`;
+    static getMaxSequenceNo() {
+        let sql = `SELECT MAX(sequenceNo) as maxSequenceNo FROM question WHERE isDeleted = 0`;
+        return sql;
+    }
+
+    addLinkQuestionSQL(sequenceNo) {
+        let sql = `INSERT into question (title,questionTypeIdFK,checkListIdFK,isRefer,isCompulsory,sequenceNo) 
+                VALUES ('${this.title}',${this.questionTypeIdFK},${this.checkListIdFK},1,${this.isCompulsory},${sequenceNo})`;
         return sql;
     }
 
     addQuestionOptionSQL(questionIdFK) {
-        let sql = `INSERT into questionoption(questionIdFK,title,isDanger) VALUES (${questionIdFK},"${this.optionTitle}",${this.isDanger})`;
+        let sql = `INSERT into questionoption(questionIdFK,title,isDanger) VALUES (${questionIdFK},'${this.optionTitle}',${this.isDanger})`;
         return sql;
     }
 
@@ -74,7 +79,7 @@ class Question {
 
     updateQuestionByIdSQL(questionId) {
         let sql = `UPDATE question SET 
-                    title            = "${this.title}",
+                    title            = '${this.title}',
                     questionTypeIdFK = ${this.questionTypeIdFK},
                     checkListIdFK    = ${this.checkListIdFK},
                     isCompulsory     = ${this.isCompulsory}
@@ -84,9 +89,14 @@ class Question {
 
     updateQuestionOptionSQL(questionOptionId) {
         let sql = `UPDATE questionoption SET
-                    title = "${this.optionTitle}",
+                    title = '${this.optionTitle}',
                     isDanger = ${this.isDanger}
         WHERE questionOptionId = ${questionOptionId}`;
+        return sql;
+    }
+
+    updateSequenceQuestionByIdSQL(questionId) {
+        let sql = `UPDATE question SET sequenceNo = ${this.sequenceNo} WHERE questionId = ${questionId}`;
         return sql;
     }
 
@@ -135,6 +145,14 @@ class Question {
                  FROM question q JOIN questiontype qt on q.questionTypeIdFK = qt.questionTypeId
                  JOIN checklist c on q.checkListIdFK = c.checklistId
                  WHERE c.checklistId = ${checkListId} AND q.isDeleted = 0  ORDER BY q.createdOn DESC`;
+        return sql;
+    }
+
+    static getAllSequenceQuestionsSQL(checkListId) {
+        let sql = `SELECT c.checklistId,q.questionId,qt.title as questionType,q.title as questionDescription,q.sequenceNo as sequenceNumber 
+            FROM question q JOIN questiontype qt on q.questionTypeIdFK = qt.questionTypeId
+            JOIN checklist c on q.checkListIdFK = c.checklistId
+            WHERE c.checklistId = ${checkListId} AND q.isDeleted = 0 ORDER BY q.sequenceNo DESC`;
         return sql;
     }
 }

@@ -11,7 +11,7 @@ class User {
         let limitString = (limit > 0) ? `LIMIT ${startLimit}, ${limit}` : '';
 
         let sql = `SELECT u.userId,u.firstName,u.lastName,u.userRoleIdFK,ur.title as userRole,CONCAT('${BASE_URL}','',u.profileImage) as profileImage,u.departmentIdFK,d.departmentTitle,
-                   u.mobileNumber,u.emailId,u.password FROM user u 
+                   u.mobileNumber,u.emailId,u.password,IF(u.isActive = 1, 'true','false') AS isActive FROM user u 
                    LEFT JOIN department d ON u.departmentIdFK = d.departmentId 
                    JOIN userrole ur ON u.userRoleIdFK = ur.userRoleId
                    WHERE u.departmentIdFK = ${deptId} AND u.isDeleted = 0 ORDER BY u.createdOn DESC ${limitString}`
@@ -20,7 +20,7 @@ class User {
 
     static getAllUserSearchSQL(departmentId, keyword) {
         let sql = `SELECT u.userId,u.firstName,u.lastName,u.userRoleIdFK,ur.title as userRole,CONCAT('${BASE_URL}','',u.profileImage) as profileImage,d.departmentTitle,u.mobileNumber,
-                   u.emailId FROM user u 
+                   u.emailId,IF(u.isActive = 1, 'true','false') AS isActive FROM user u 
                    LEFT JOIN department d ON u.departmentIdFK = d.departmentId 
                    JOIN userrole ur ON u.userRoleIdFK = ur.userRoleId
                    WHERE u.departmentIdFK = ${departmentId} AND CONCAT(u.firstName, '' , u.lastName) LIKE '%${keyword}%' AND u.isDeleted = 0`;
@@ -94,5 +94,16 @@ class User {
         WHERE u.isDeleted = 0 AND o.organizationId = ${organizationIdFK}`;
         return sql;
     }
+
+    static getUserAssignedOrNot(userId) {
+        let sql = `SELECT u.userId,u1.userCatAssignmentId FROM usercatassignment u1 JOIN user u ON u1.userIdFK = u.userId WHERE u.userId = ${userId}`;
+        return sql;
+    }
+
+    updateUserIsActiveStatusSQL(userId) {
+        let sql = `UPDATE user set isActive = ${this.isActive} WHERE userId = ${userId}`;
+        return sql;
+    }
 }
+
 module.exports = User;

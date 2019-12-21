@@ -20,13 +20,13 @@ class Organization {
                     (SELECT COUNT(adminId) as totalAdmins FROM admin WHERE organizationIdFK = organizationId AND isDeleted = 0)
                     ELSE 0
                    END as totalAdmins,
-              CASE
-                   WHEN organizationId = ${organizationId} IS NOT NULL THEN 
+               CASE 
+                   WHEN organizationId = 1 IS NOT NULL THEN 
                    (SELECT COUNT(u.userId) as totalUsers FROM user u
                     JOIN department d ON u.departmentIdFK = d.departmentId
                     WHERE d.organizationIdFK = organizationId AND u.isDeleted = 0 AND d.isDeleted = 0)
                     ELSE 0
-                   END as totalUsers
+                   END as totalUsers  
                FROM organization WHERE isDeleted = 0 ORDER BY createdOn DESC ${limitString}`;
     return sql;
   }

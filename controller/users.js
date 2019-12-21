@@ -112,6 +112,7 @@ router.get("/listOfUsers/:departmentId/:pageNo", (req, res, next) => {
                                 "currentPage": page,
                                 "totalCount": pageCount1,
                                 "users": data,
+                                status: true,
                                 message: "Users List found",
                             });
                         } else {
@@ -119,6 +120,7 @@ router.get("/listOfUsers/:departmentId/:pageNo", (req, res, next) => {
                                 "currentPage": page,
                                 "totalCount": pageCount1,
                                 "users": [],
+                                status: true,
                                 message: "No record found"
                             });
                         }
@@ -126,7 +128,8 @@ router.get("/listOfUsers/:departmentId/:pageNo", (req, res, next) => {
                 });
             }
             else {
-                res.status(400).json({
+                res.status(200).json({
+                    status: false,
                     message: "Something went wrong...!!"
                 });
             }
@@ -235,11 +238,13 @@ router.get("/viewParticularUser/:userId", (req, res, next) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({
+                        status: true,
                         message: "User found",
                         users: data[0]
                     });
                 } else {
-                    res.status(404).json({
+                    res.status(200).json({
+                        status: false,
                         message: "User Not found"
                     });
                 }
@@ -315,6 +320,7 @@ router.post("/addUser", [
 
             if (!err) {
                 res.status(200).json({
+                    status: true,
                     message: "User added successfully",
                     Id: data.insertId
                 });
@@ -328,6 +334,7 @@ router.post("/addUser", [
                 }
 
                 res.status(200).json({
+                    status: false,
                     message: message
                 });
             }
@@ -411,6 +418,7 @@ router.put("/updateUser/:userId", [
                         if (!err) {
                             if (data && data.affectedRows > 0) {
                                 res.status(200).json({
+                                    status: true,
                                     message: "User updated successfully",
                                     affectedRows: data.affectedRows
                                 });
@@ -424,6 +432,7 @@ router.put("/updateUser/:userId", [
                                 }
 
                                 res.status(200).json({
+                                    status: false,
                                     message: message
                                 });
                             }
@@ -432,6 +441,7 @@ router.put("/updateUser/:userId", [
                 }
                 else {
                     res.status(200).json({
+                        status: false,
                         message: "User ID is not available"
                     });
                 }
@@ -473,32 +483,43 @@ router.put("/deleteUser/:userId", (req, res, next) => {
 
         db.query(User.checkUserId(uId), (err, data) => {
             if (data.length > 0) {
-                db.query(User.deleteUserByIdSQL(uId), (err, data) => {
-                    if (!err) {
-                        if (data && data.affectedRows > 0) {
-                            res.status(200).json({
-                                message: "User Deleted Successfully",
-                                affectedRows: data.affectedRows
-                            });
-                        } else {
-                            res.status(400).json({
-                                message: "User is not deleted"
-                            });
-                        }
+                db.query(User.getUserAssignedOrNot(uId), (err1, data1) => {
+                    if (data1 && data1.length == 0) {
+                        db.query(User.deleteUserByIdSQL(uId), (err, data) => {
+                            if (!err) {
+                                if (data && data.affectedRows > 0) {
+                                    res.status(200).json({
+                                        status: true,
+                                        message: "User Deleted Successfully",
+                                        affectedRows: data.affectedRows
+                                    });
+                                } else {
+                                    res.status(200).json({
+                                        status: false,
+                                        message: "User is not deleted"
+                                    });
+                                }
+                            } else {
+                                console.log(err.message);
+                            }
+                        });
                     } else {
-                        console.log(err.message);
+                        res.status(200).json({
+                            status: false,
+                            message: "Can't delete, User is already assigned!"
+                        });
                     }
                 });
             }
             else {
-                res.status(400).json({
+                res.status(200).json({
+                    status: false,
                     message: "Already deleted"
                 });
             }
         });
     })
 });
-module.exports = router;
 
 /**
  * @swagger
@@ -574,11 +595,13 @@ router.get("/selectUserRole", (req, res, next) => {
                 if (data && data.length > 0) {
                     res.status(200).json({
                         userRole: data,
+                        status: true,
                         message: "User Role List Found"
                     });
                 }
                 else {
                     res.status(200).json({
+                        status: false,
                         message: "User Role List Not Found"
                     });
                 }
@@ -618,16 +641,96 @@ router.get("/selectUser", (req, res, next) => {
                 if (data && data.length > 0) {
                     res.status(200).json({
                         user: data,
+                        status: true,
                         message: "User List Found"
                     });
                 }
                 else {
                     res.status(200).json({
+                        status: false,
                         message: "User List Not Found"
                     });
                 }
             }
         })
+    })
+});
+
+/**
+ * @swagger
+ * definitions:
+ *   UpdateIsActiveUser:
+ *     properties:
+ *      isActive:
+ *         type: integer
+ */
+
+/**
+ * @swagger
+ * /users/setUserIsActiveStatus/{userId}:
+ *   put:
+ *     tags:
+ *       - User 
+ *     description: Changes status of User to Active Or Deactive
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: userId
+ *         description: User Id
+ *         in: path
+ *         required: true
+ *       - name: isActive data From body
+ *         description: Enter isActive Status = 0 for Deactivating User And IsActive Status = 1 For Activating User
+ *         in: body
+ *         required: true
+ *       - name: Authorization
+ *         description: token
+ *         in: header
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK
+ *       404:
+ *         description: Not found
+ *       400:
+ *         description: Bad request
+ *         schema:
+ *           $ref: '#/definitions/UpdateIsActiveUser'
+ */
+
+router.put("/setUserIsActiveStatus/:userId", (req, res, next) => {
+    verifyToken(req, res, tokendata => {
+        let userId = req.params.userId;
+        let isActive = new User(req.body);
+        db.query(User.checkUserId(userId), (err, data) => {
+            if (data.length > 0) {
+                db.query(isActive.updateUserIsActiveStatusSQL(userId), (err, data) => {
+                    if (!err) {
+                        if (data && data.affectedRows > 0) {
+                            res.status(200).json({
+                                status: true,
+                                message: "User " + (isActive.isActive == 1 ? 'activated' : 'deactivated') + " successfully..!!"
+                            });
+                        }
+                        else {
+                            res.status(200).json({
+                                status: false,
+                                message: "Failed to update User active status..!!"
+                            });
+                        }
+                    }
+                    else {
+                        console.log(err.message);
+                    }
+                });
+            }
+            else {
+                res.status(200).json({
+                    status: false,
+                    message: "User ID is not available"
+                });
+            }
+        });
     })
 });
 

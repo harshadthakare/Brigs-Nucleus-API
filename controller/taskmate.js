@@ -1092,7 +1092,6 @@ router.put("/deleteTransferTask/:complaintId", (req, res, next) => {
         });
     })
 });
-
 /**
  * @swagger
  * /taskmate/pendingTasksList/{limit}:
@@ -1129,18 +1128,19 @@ router.get("/pendingTasksList/:limit", (req, res, next) => {
                 if (data && data.length > 0) {
                     res.status(200).json({
                         "TasksList": data,
-                        status:true,
+                        status: true,
                         message: "Pending Task List found",
                     });
                 } else {
                     res.status(200).json({
                         "TasksList": [],
-                        status:false,
-                        message: "No record found"  
+                        status: false,
+                        message: "No record found"
                     });
                 }
             }
         });
     })
 });
+
 module.exports = router;

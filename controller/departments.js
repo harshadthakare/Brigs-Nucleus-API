@@ -56,6 +56,7 @@ router.get("/departmentList", (req, res, next) => {
                     generateDeptArray(allDepartments, (result) => {
                         res.status(200).json({
                             "department": result,
+                            status: true,
                             message: "Department List found"
                         });
                     })
@@ -63,12 +64,14 @@ router.get("/departmentList", (req, res, next) => {
                 else {
                     res.status(200).json({
                         message: "Department List Not found",
+                        status: true,
                         department: []
                     });
                 }
             }
             else {
                 res.status(200).json({
+                    status: false,
                     message: "Department List Not found"
                 });
             }
@@ -111,11 +114,13 @@ router.get("/viewParticularDepartment/:departmentId", (req, res, next) => {
                 if (data && data.length > 0) {
 
                     res.status(200).json({
+                        status: true,
                         message: "Department Found",
                         department: data[0]
                     });
                 } else {
                     res.status(200).json({
+                        status: false,
                         message: "Department Not Found"
                     });
                 }
@@ -180,11 +185,13 @@ router.post("/addDepartment", [
         db.query(dept.addDeptSQL(), (err, data) => {
             if (!err) {
                 res.status(200).json({
+                    status: true,
                     message: "Department added successfully",
                     Id: data.insertId
                 });
             } else {
-                res.status(400).json({
+                res.status(200).json({
+                    status: false,
                     message: "Something went wrong, Please try again"
                 });
             }
@@ -260,11 +267,13 @@ router.put("/updateDepartment/:departmentId", [
 
                         if (data && data.affectedRows > 0) {
                             res.status(200).json({
+                                status: true,
                                 message: "Department updated successfully",
                                 affectedRows: data.affectedRows
                             })
                         } else {
-                            res.status(400).json({
+                            res.status(200).json({
+                                status: false,
                                 message: "Something went wrong, Please try again"
                             });
                         }
@@ -274,7 +283,8 @@ router.put("/updateDepartment/:departmentId", [
                 });
             }
             else {
-                res.status(404).json({
+                res.status(200).json({
+                    status: false,
                     message: "Department ID is not available"
                 });
             }
@@ -315,32 +325,44 @@ router.put("/deleteDepartment/:departmentId", (req, res, next) => {
 
         db.query(Dept.checkDepartmentId(dId), (err, data) => {
             if (data.length > 0) {
-                db.query(Dept.deleteDeptByIdSQL(dId), (err, data) => {
-                    if (!err) {
-                        if (data && data.affectedRows > 0) {
-                            res.status(200).json({
-                                message: "Department deleted successfully",
-                                affectedRows: data.affectedRows
-                            });
-                        } else {
-                            res.status(400).json({
-                                message: "Department is not deleted"
-                            });
-                        }
+                db.query(Dept.getDeptAssignedOrNot(dId), (err1, data1) => {
+                    if (data1 && data1.length == 0) {
+                        db.query(Dept.deleteDeptByIdSQL(dId), (err, data) => {
+                            if (!err) {
+                                if (data && data.affectedRows > 0) {
+                                    res.status(200).json({
+                                        status: true,
+                                        message: "Department deleted successfully",
+                                        affectedRows: data.affectedRows
+                                    });
+                                } else {
+                                    res.status(200).json({
+                                        status: false,
+                                        message: "Department is not deleted"
+                                    });
+                                }
+                            } else {
+                                console.log(err.message);
+                            }
+                        });
                     } else {
-                        console.log(err.message);
-
+                        res.status(200).json({
+                            status: false,
+                            message: "Can't delete, Department is already assigned!"
+                        });
                     }
-                });
+                })
             }
             else {
-                res.status(400).json({
+                res.status(200).json({
+                    status: false,
                     message: "Already deleted"
                 });
             }
         });
     })
 });
+
 /**
  * @swagger
  * /departments/selectDepartment:
@@ -371,11 +393,13 @@ router.get("/selectDepartment", (req, res, next) => {
                 if (data && data.length > 0) {
 
                     res.status(200).json({
+                        status: true,
                         department: data,
                         message: "Department List Found",
                     });
                 } else {
                     res.status(200).json({
+                        status: false,
                         message: "Department List Not Found"
                     });
                 }
@@ -383,4 +407,5 @@ router.get("/selectDepartment", (req, res, next) => {
         });
     })
 });
+
 module.exports = router;

@@ -99,16 +99,16 @@ router.get("/complaintsList/:pageNo", (req, res, next) => {
         const page = req.params.pageNo;
         var pageCount1 = 0;
 
-        db.query(Complaints.getComplaintCount(), (err2, data2) => {
+        db.query(Complaints.getComplaintCount(tokendata.organizationIdFK), (err2, data2) => {
             let totalComplaints = data2[0].totalComplaints;
 
             if (data2) {
-                db.query(Complaints.getAllComplaintsSQL(), (err1, data1) => {
+                db.query(Complaints.getAllComplaintsSQL(tokendata.organizationIdFK), (err1, data1) => {
 
                     if (data1) {
                         pageCount1 = data1.length;
 
-                        db.query(Complaints.getAllComplaintsSQL(limit, page), (err, data) => {
+                        db.query(Complaints.getAllComplaintsSQL(tokendata.organizationIdFK, limit, page), (err, data) => {
                             if (!err) {
                                 if (data && data.length > 0) {
                                     res.status(200).json({
@@ -122,6 +122,7 @@ router.get("/complaintsList/:pageNo", (req, res, next) => {
                                     res.status(200).json({
                                         "currentPage": page,
                                         "totalCount": pageCount1,
+                                        "totalComplaints": 0,
                                         "complaintList": [],
                                         message: "No record found"
                                     });
@@ -188,7 +189,7 @@ router.get("/complaintSearch/", [
 
         let keyword = req.query.keyword;
 
-        db.query(Complaints.getAllComplaintsSearchSQL(keyword), (err, data) => {
+        db.query(Complaints.getAllComplaintsSearchSQL(tokendata.organizationIdFK, keyword), (err, data) => {
             if (!err) {
                 if (data && data.length > 0) {
                     res.status(200).json({
@@ -247,7 +248,7 @@ router.get("/viewParticularComplaint/:complaintId", (req, res, next) => {
                         complaint: data
                     });
                 } else {
-                    res.status(404).json({
+                    res.status(200).json({
                         message: "Complaint Not Found"
                     });
                 }
@@ -451,6 +452,7 @@ router.post("/addComplaint", [
         }
         // ....!  end send response of validation to client
         let obj = req.body;
+        obj.organizationIdFK = tokendata.organizationIdFK;
         let complaint = new Complaints(obj);
         let users = req.body.users;
         let user = new Complaints(req.body);
@@ -904,7 +906,7 @@ router.get("/selectResponsibleUsers/:complaintId", (req, res, next) => {
                     });
                 }
                 else {
-                    res.status(404).json({
+                    res.status(200).json({
                         message: "Responsible Users List Not Found"
                     });
                 }
@@ -1270,7 +1272,7 @@ router.get("/selectComplaintStatus", (req, res, next) => {
                     });
                 }
                 else {
-                    res.status(404).json({
+                    res.status(200).json({
                         message: "Complaint Status List Not Found"
                     });
                 }
@@ -1314,7 +1316,7 @@ router.get("/selectTransferStatus", (req, res, next) => {
                     });
                 }
                 else {
-                    res.status(404).json({
+                    res.status(200).json({
                         message: "Transfer Status List Not Found"
                     });
                 }
@@ -1359,7 +1361,7 @@ router.get("/seletListOfUser", (req, res, next) => {
                     });
                 }
                 else {
-                    res.status(404).json({
+                    res.status(200).json({
                         message: "Users List Not Found"
                     });
                 }
@@ -1404,13 +1406,13 @@ router.get("/pendingComplaintsList/:limit", (req, res, next) => {
                 if (data && data.length > 0) {
                     res.status(200).json({
                         "complaintList": data,
-                        status:true,
+                        status: true,
                         message: "Complaint List found",
                     });
                 } else {
                     res.status(200).json({
                         "complaintList": [],
-                        status:false,
+                        status: false,
                         message: "No record found"
                     });
                 }

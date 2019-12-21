@@ -43,7 +43,7 @@ class Alert {
         let limitString = (limit > 0) ? `LIMIT ${startLimit}, ${limit}` : '';
 
         let sql = `SELECT a1.alertTrackingId,CONCAT('${BASE_URL}','',u.profileImage)as userImage,CONCAT(u.firstName,' ',u.lastName)as userName,isRead,isDeliver,
-                   DATE_FORMAT(a1.createdOn, '%d %M %Y') as readDate FROM alerttracking a1 JOIN typeofuser t ON a1.typeOfUserIdFK = t.typeOfUserId 
+                   DATE_FORMAT(a1.createdOn, '%d %M %Y %h:%i %p') as readDate FROM alerttracking a1 JOIN typeofuser t ON a1.typeOfUserIdFK = t.typeOfUserId 
                    JOIN user u ON u.userId = a1.masterId 
                    WHERE a1.isDeleted = 0 AND a1.alertIdFK = ${alertId} ORDER BY a1.createdOn ASC ${limitString}`;
         return sql;
@@ -51,7 +51,7 @@ class Alert {
 
     static getAlertTrackSearch(alertId, keyword) {
         let sql = `SELECT a1.alertTrackingId,CONCAT('${BASE_URL}','',u.profileImage)as userImage,CONCAT(u.firstName,' ',u.lastName)as userName,isRead,isDeliver,
-                   DATE_FORMAT(a1.createdOn, '%d %M %Y') as readDate FROM alerttracking a1 JOIN typeofuser t ON a1.typeOfUserIdFK = t.typeOfUserId 
+                   DATE_FORMAT(a1.createdOn, '%d %M %Y %h:%i %p') as readDate FROM alerttracking a1 JOIN typeofuser t ON a1.typeOfUserIdFK = t.typeOfUserId 
                    JOIN user u ON u.userId = a1.masterId 
                    WHERE a1.isDeleted = 0 AND a1.alertIdFK = ${alertId} AND CONCAT(u.firstName, '' , u.lastName) LIKE '%${keyword}%'`;
         return sql;

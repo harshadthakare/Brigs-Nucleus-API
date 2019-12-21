@@ -12,7 +12,7 @@ class Taskmate {
 
     addTaskSQL(adminId) {
         let sql = `INSERT INTO complaint (typeOfComplaintFK, assetIdFK, complaintStatusIdFK, title, message, typeOfUserIdFK, raiseBy, organizationIdFK) 
-        VALUES (1, 0, 2, "${this.title}","${this.message}", 2 ,${adminId}, ${this.organizationIdFK})`;
+        VALUES (1, 0, 2, '${this.title}',"${this.message}", 2 ,${adminId}, ${this.organizationIdFK})`;
         return sql;
     }
 
@@ -176,13 +176,13 @@ class Taskmate {
         let sql = `UPDATE transfercomplaint SET isDeleted = 1 WHERE complaintIdFK = ${complaintId}`;
         return sql;
     }
-    static  getPendingTasksSQL(organizationIdFK, limit) {
+    static getPendingTasksSQL(organizationIdFK, limit) {
 
         let limitString = (limit > 0 && limit !== 0) ? `LIMIT 0, ${limit}` : '';
-        
+
         let sql = `SELECT c.complaintId,c.title,tc.title as typeOfComplaint,cs.title as complaintStatus,tu.title as typeOfUser,
                   (SELECT CONCAT('${BASE_URL}','',ci.imageName) as complaintImage from complaintimages ci where ci.complaintIdFK = c.complaintId LIMIT 1) as complaintImage, 
-                   DATE_FORMAT(c.createdOn, '%d %M %Y %h:%i %p')as createdDate,  
+                   DATE_FORMAT(c.createdOn, '%d %b %Y %h:%i %p')as createdDate,  
                    CASE 
                        WHEN c.typeOfUserIdFK = 1 THEN (SELECT CONCAT(firstName ,' ', lastName)as raiseByName FROM superadmin WHERE superAdminId = c.raiseBy)
                        WHEN c.typeOfUserIdFK = 2 THEN (SELECT CONCAT(firstName ,' ', lastName)as raiseByName FROM admin WHERE adminId = c.raiseBy)

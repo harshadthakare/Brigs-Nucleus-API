@@ -4,43 +4,6 @@ class Asset {
     constructor(obj) {
         obj && Object.assign(this, obj)
     }
-
-    static getAllAssetSQL(organizationIdFK, categoryId, limit = 0, start = 0) {
-        let startLimit = limit * start;
-
-        let limitString = (limit > 0) ? `LIMIT ${startLimit}, ${limit}` : '';
-
-        let sql = `SELECT a.assetId,a.assetTitle,c.title as categoryName,a.assetCode,a.modelNumber,a.companyAssetNo,
-                   CONCAT('${BASE_URL}','',a.image) as assetImage,o.organizationName from asset a
-                   LEFT JOIN installationlocationtype i on a.installationLocationTypeIdFK = i.installationLocationTypeId
-                   LEFT JOIN durationtype d ON a.durationTypeIdFK = d.durationTypeId
-                   LEFT JOIN department d1 ON a.departmentIdFK = d1.departmentId
-                   LEFT JOIN organization o ON a.organizationIdFK = o.organizationId
-                   LEFT JOIN supplier s ON a.supplierIdFK = s.supplierId
-                   LEFT JOIN manufacturer m ON a.manufacturerIdFK = m.manufacturerId
-                   LEFT JOIN assetcatrelation a2 ON a2.assetIdFK = a.assetId
-                   LEFT JOIN category c on a2.categoryIdFK = c.categoryId
-                   WHERE a.organizationIdFK = ${organizationIdFK} AND a2.categoryIdFK = ${categoryId} AND a.isDeleted = 0 
-                   ORDER BY a.createdOn DESC ${limitString}`;
-        return sql;
-    }
-
-    static getAllAssetSearchSQL(organizationIdFK, categoryId, keyword) {
-
-        let sql = `SELECT a.assetId,a.assetTitle,c.title as categoryName,a.assetCode,a.modelNumber,a.companyAssetNo,
-                   CONCAT('${BASE_URL}','',a.image) as assetImage,o.organizationName from asset a
-                   LEFT JOIN installationlocationtype i on a.installationLocationTypeIdFK = i.installationLocationTypeId
-                   LEFT JOIN durationtype d ON a.durationTypeIdFK = d.durationTypeId
-                   LEFT JOIN department d1 ON a.departmentIdFK = d1.departmentId
-                   LEFT JOIN organization o ON a.organizationIdFK = o.organizationId
-                   LEFT JOIN supplier s ON a.supplierIdFK = s.supplierId
-                   LEFT JOIN manufacturer m ON a.manufacturerIdFK = m.manufacturerId
-                   LEFT JOIN assetcatrelation a2 ON a2.assetIdFK = a.assetId
-                   LEFT JOIN category c on a2.categoryIdFK = c.categoryId
-                   WHERE a.organizationIdFK = ${organizationIdFK} AND a.assetTitle LIKE '%${keyword}%' AND a2.categoryIdFK = ${categoryId} AND a.isDeleted = 0`;
-        return sql;
-    }
-
     static getAssetHistorySQL(assetIdFK, limit = 0, start = 0) {
         let startLimit = limit * start;
 
@@ -74,7 +37,8 @@ class Asset {
                    CONCAT(s.firstName,' ', s.lastName) AS supplierName,a.supplierIdFK,m.title as manufacturerName,a.manufacturerIdFK,
                    (SELECT COUNT(doneChecklistId)as totalDoneChecklist from donechecklist WHERE assetIdFK = assetId AND isDeleted = 0) as totalDoneChecklist,
                    (SELECT COUNT(documentId)as totalDocuments from document WHERE documentTypeIdFK = 2 AND masterId = assetId AND isDeleted = 0) as totalDocuments,
-                   (SELECT COUNT(userCatAssignmentId) AS totalAssignedUsers FROM usercatassignment WHERE assignmentTypeIdFK = 3 AND masterIdFK = assetId AND isDeleted = 0) as totalAssignedUsers 
+                   (SELECT COUNT(userCatAssignmentId) AS totalAssignedUsers FROM usercatassignment WHERE assignmentTypeIdFK = 3 AND masterIdFK = assetId AND isDeleted = 0) as totalAssignedUsers,
+                   IF(a.isActive = 1, 'true','false') AS isActive,IF(a.isRetired = 1, 'true','false') AS isRetired,IF(a.isVerified = 1, 'true','false') AS isVerified 
                    from asset a LEFT JOIN installationlocationtype i on a.installationLocationTypeIdFK = i.installationLocationTypeId
                    LEFT JOIN durationtype d ON a.durationTypeIdFK = d.durationTypeId
                    LEFT JOIN department d1 ON a.departmentIdFK = d1.departmentId
@@ -88,42 +52,50 @@ class Asset {
     }
 
     addAssetSQL() {
+
         let sql = `INSERT INTO asset
-        (assetTitle,
-         modelNumber,
-         companyAssetNo,
-         description,
-         image,
-         installationDate,
-         installationLocationTypeIdFK,
-         installedLocation,
-         userGuideBook,
-         checkingDuration,
-         durationTypeIdFK,
-         assetCode,
-         warrenty,
-         warrantyDurationTypeIdFK,
-         supplierIdFK,departmentIdFK, 
-         manufacturerIdFK,
-         organizationIdFK)
-         VALUES('${this.assetTitle}',
-                '${this.modelNumber}',
-                '${this.companyAssetNo}',
-                '${this.description}',
-                '${this.image}',
-                '${this.installationDate}',
-                 ${this.installationLocationTypeIdFK},
-                '${this.installedLocation}',
-                '${this.userGuideBook}',
-                 ${this.checkingDuration},
-                 ${this.durationTypeIdFK},
-                '${this.assetCode}',
-                 ${this.warrenty},
-                 ${this.warrantyDurationTypeIdFK},
-                 ${this.supplierIdFK},
-                 ${this.departmentIdFK},
-                 ${this.manufacturerIdFK},
-                 ${this.organizationIdFK})`;
+           (assetTitle,
+            modelNumber,
+            companyAssetNo,
+            description,
+            image,
+            installationDate,
+            installationLocationTypeIdFK,
+            installedLocation,
+            userGuideBook,
+            checkingDuration,
+            durationTypeIdFK,
+            assetCode,
+            warrenty,
+            warrantyDurationTypeIdFK,
+            supplierIdFK,
+            departmentIdFK, 
+            manufacturerIdFK,
+            typeOfUserIdFK,
+            addedBy,
+            isVerified,
+            organizationIdFK)
+            VALUES('${this.assetTitle}',
+                   '${this.modelNumber}',
+                   '${this.companyAssetNo}',
+                   "${this.description}",
+                   '${this.image}',
+                   '${this.installationDate}',
+                    ${this.installationLocationTypeIdFK},
+                   '${this.installedLocation}',
+                   '${this.userGuideBook}',
+                    ${this.checkingDuration},
+                    ${this.durationTypeIdFK},
+                   '${this.assetCode}',
+                    ${this.warrenty},
+                    ${this.warrantyDurationTypeIdFK},
+                    ${this.supplierIdFK},
+                    ${this.departmentIdFK},
+                    ${this.manufacturerIdFK},
+                    ${this.typeOfUserIdFK},
+                    ${this.addedBy},
+                    ${this.isVerified},
+                    ${this.organizationIdFK})`;
         return sql;
     }
 
@@ -132,16 +104,20 @@ class Asset {
         return sql;
     }
 
+    static getOrganizationCodeById(organizationIdFK) {
+
+        let sql = `SELECT organizationCode FROM organization WHERE organizationId = ${organizationIdFK}`;
+        return sql;
+    }
+
     updateAssetByIdSQL(assetId) {
         let sql = `UPDATE asset SET  
             assetTitle                   = '${this.assetTitle}',
             modelNumber                  = '${this.modelNumber}',
             companyAssetNo               = '${this.companyAssetNo}',
-            description                  = '${this.description}',
+            description                  = "${this.description}",
             image                        = '${this.image}',
             installationDate             = '${this.installationDate}',
-            installationLocationTypeIdFK = '${this.installationLocationTypeIdFK}',
-            installedLocation            = '${this.installedLocation}',
             userGuideBook                = '${this.userGuideBook}',
             checkingDuration             =  ${this.checkingDuration},
             durationTypeIdFK             = '${this.durationTypeIdFK}',
@@ -201,6 +177,147 @@ class Asset {
         LEFT JOIN assetcatrelation a2 ON a2.assetIdFK = a.assetId
         LEFT JOIN category c on a2.categoryIdFK = c.categoryId
         WHERE a.organizationIdFK =${organizationIdFK} AND a2.categoryIdFK =${categoryId} AND a.isDeleted = 0 ORDER BY a.createdOn DESC`;
+        return sql;
+    }
+    static getAllIsDangerAssetsSQL(organizationIdFK) {
+
+        let sql = `SELECT DISTINCT a.assetId,a.assetTitle,c.categoryId,c.title as categoryName,a.assetCode,a.modelNumber,a.companyAssetNo,
+            CONCAT('${BASE_URL}','',a.image) as assetImage FROM asset a 
+            JOIN assetcatrelation a1 ON a1.assetIdFK = a.assetId 
+            JOIN category c ON c.categoryId = a1.categoryIdFK 
+            JOIN checklist ch ON ch.categoryIdFK = c.categoryId 
+            JOIN question q ON q.checkListIdFK = ch.checklistId 
+            JOIN questionoption qo ON qo.questionIdFK = q.questionId 
+            WHERE a.organizationIdFK = ${organizationIdFK} AND a.isDeleted = 0 AND qo.isDanger = 1 AND a.isVerified = 1 ORDER BY a.createdOn DESC `;
+        return sql;
+    }
+    updateInstallationlocByAssetIdSQL(assetId) {
+        let sql = `UPDATE asset SET   
+                   installationLocationTypeIdFK = '${this.installationLocationTypeIdFK}',
+                   installedLocation            = '${this.installedLocation}'       
+                   WHERE assetId = ${assetId}`;
+        return sql;
+    }
+    updateIsActiveStatusSQL(assetId) {
+        let sql = `UPDATE asset SET isActive = '${this.isActive}' WHERE assetId = ${assetId}`;
+
+        return sql;
+    }
+    updateIsRetiredStatusSQL(assetId) {
+        let sql = `UPDATE asset SET isRetired = ${this.isRetired} WHERE assetId = ${assetId}`;
+        return sql;
+    }
+
+    static filterAllAssets(organizationIdFK, categoryId, manufacturerIdFK, supplierIdFK, departmentIdFK, installationLocationTypeIdFK, limit = 0, start = 0) {
+        let startLimit = limit * start;
+
+        let limitString = (limit > 0) ? `LIMIT ${startLimit}, ${limit}` : '';
+
+        let filterString = '';
+        if (manufacturerIdFK != 0) {
+            filterString += `AND a.manufacturerIdFK IN(${manufacturerIdFK}) `;
+        }
+        if (supplierIdFK != 0) {
+            filterString += `AND a.supplierIdFK IN(${supplierIdFK}) `;
+        }
+        if (departmentIdFK != 0) {
+            filterString += `AND a.departmentIdFK IN(${departmentIdFK}) `;
+        }
+        if (installationLocationTypeIdFK != 0) {
+            filterString += `AND a.installationLocationTypeIdFK IN(${installationLocationTypeIdFK}) `;
+        }
+        let sql = `SELECT a.assetId,a.assetTitle,c.title as categoryName,a.assetCode,a.modelNumber,a.companyAssetNo,
+              CONCAT('${BASE_URL}','',a.image) as assetImage,IF(a.isActive = 1, 'true','false') AS isActive,IF(a.isRetired = 1, 'true','false') AS isRetired,
+              o.organizationName,i.title As locationType,a.installedLocation from asset a
+              LEFT JOIN installationlocationtype i on a.installationLocationTypeIdFK = i.installationLocationTypeId
+              LEFT JOIN organization o ON a.organizationIdFK = o.organizationId
+              LEFT JOIN assetcatrelation a2 ON a2.assetIdFK = a.assetId
+              LEFT JOIN category c on a2.categoryIdFK = c.categoryId
+              WHERE a.organizationIdFK = ${organizationIdFK} AND a2.categoryIdFK = ${categoryId} AND a.isDeleted = 0 AND a.isVerified = 1 ` + filterString + ` ORDER BY a.createdOn DESC ${limitString}`;
+        return sql;
+    }
+
+    static filterAllAssetsSearchSQL(organizationIdFK, categoryId, keyword, manufacturerIdFK, supplierIdFK, departmentIdFK, installationLocationTypeIdFK) {
+        let filterString = '';
+        if (manufacturerIdFK != 0) {
+            filterString += `AND a.manufacturerIdFK IN(${manufacturerIdFK}) `;
+        }
+        if (supplierIdFK != 0) {
+            filterString += `AND a.supplierIdFK IN(${supplierIdFK}) `;
+        }
+        if (departmentIdFK != 0) {
+            filterString += `AND a.departmentIdFK IN(${departmentIdFK} `;
+        }
+        if (installationLocationTypeIdFK != 0) {
+            filterString += `AND a.installationLocationTypeIdFK IN(${installationLocationTypeIdFK}) `;
+        }
+        let sql = `SELECT a.assetId,a.assetTitle,c.title as categoryName,a.assetCode,a.modelNumber,a.companyAssetNo,
+              CONCAT('${BASE_URL}','',a.image) as assetImage,IF(a.isActive = 1, 'true','false') AS isActive,IF(a.isRetired = 1, 'true','false') AS isRetired,
+              o.organizationName,i.title As locationType,a.installedLocation from asset a
+              LEFT JOIN installationlocationtype i on a.installationLocationTypeIdFK = i.installationLocationTypeId
+              LEFT JOIN organization o ON a.organizationIdFK = o.organizationId
+              LEFT JOIN assetcatrelation a2 ON a2.assetIdFK = a.assetId
+              LEFT JOIN category c on a2.categoryIdFK = c.categoryId
+              WHERE a.organizationIdFK = ${organizationIdFK} AND a.assetTitle LIKE '%${keyword}%' AND a2.categoryIdFK = ${categoryId} AND a.isDeleted = 0 AND a.isVerified = 1 ` + filterString + ` ORDER BY a.createdOn DESC`;
+        return sql;
+    }
+
+    static getAllPendingVerificationAssetsSQL(organizationIdFK, limit = 0, start = 0) {
+        let startLimit = limit * start;
+
+        let limitString = (limit > 0) ? `LIMIT ${startLimit}, ${limit}` : '';
+
+        let sql = `SELECT a.assetId,c.categoryId,a.assetTitle,u.userId,CONCAT(u.firstName, '', u.lastName)as addedBy from asset a 
+                   JOIN assetcatrelation a1 ON a1.assetIdFK = a.assetId 
+                   JOIN category c ON a1.categoryIdFK = c.categoryId 
+                   JOIN user u ON a.addedBy = u.userId
+                   WHERE a.organizationIdFK = ${organizationIdFK} AND a.isVerified = 0 AND a.isActive = 1 AND a.isRetired = 0 AND a.isDeleted = 0 
+                   ORDER BY a.createdOn DESC ${limitString}`;
+        return sql;
+    }
+
+    updateVerifiedAssetByIdSQL(assetId) {
+        let sql = `UPDATE asset SET  
+        isVerified = '${this.isVerified}'
+        WHERE assetId = ${assetId}`;
+        return sql;
+    }
+    static getAssetOldLocation(assetId) {
+        let sql = `SELECT installationLocationTypeIdFK,installedLocation from asset WHERE assetId = ${assetId} AND isDeleted = 0`;
+        return sql;
+
+    }
+    addNewInstallationLocation(assetId, oldLocationTypeIdFK, oldLocation) {
+        let sql = `INSERT INTO assettransferlog
+                  (assetIdFK,
+                    oldLocationTypeIdFK,
+                    oldLocation,
+                    newLocationtypeIdFK,
+                    newLocation)
+                   VALUES (${assetId},
+                    '${oldLocationTypeIdFK}',
+                    '${oldLocation}',
+                    '${this.installationLocationTypeIdFK}',
+                    '${this.installedLocation}')`;
+        return sql;
+    }
+    static getAssetLocationLatLongSQL(assetId, limit = 0, start = 0) {
+        let startLimit = limit * start;
+
+        let limitString = (limit > 0) ? `LIMIT ${startLimit}, ${limit}` : '';
+        let sql = `SELECT assetLocationId,latitude,longitude,DATE_FORMAT(createdOn,'%h:%i %p,%d %b %Y') as locationAddedDate FROM assetLocations
+                  WHERE assetIdFK = ${assetId} AND isDeleted = 0 ORDER BY createdOn DESC ${limitString}`;
+        return sql;
+    }
+    static getAssetTransferLocationsSQL(assetId, limit = 0, start = 0) {
+        let startLimit = limit * start;
+
+        let limitString = (limit > 0) ? `LIMIT ${startLimit}, ${limit}` : '';
+        let sql = `SELECT a.assetTransferLogId,a.oldLocationTypeIdFK,i1.title as oldLocationType,a.oldLocation,a.newLocationtypeIdFK,
+                    i2.title as newLocationtype,a.newLocation,DATE_FORMAT(a.createdOn,'%h:%i %p,%d %b %Y') as locationTransferredDate FROM assettransferlog a 
+                    JOIN installationlocationtype i1 ON i1.installationLocationTypeId = a.oldLocationTypeIdFK 
+                    JOIN installationlocationtype i2 ON i2.installationLocationTypeId = a.newLocationtypeIdFK 
+                    WHERE a.assetIdFK = ${assetId} AND a.isDeleted = 0 ORDER BY a.createdOn DESC ${limitString}`;
         return sql;
     }
 }

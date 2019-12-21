@@ -2,7 +2,6 @@ const express = require("express");
 const db = require("../db/database");
 const UserAssign = require("../model/userCatAssign_model");
 const { verifyToken } = require("../config/verifyJwtToken");
-
 const { check, validationResult } = require('express-validator');
 
 const router = express.Router();
@@ -509,6 +508,106 @@ router.get("/selectAssignmentType", (req, res, next) => {
                 }
             }
         })
+    })
+});
+
+/**
+ * @swagger
+ * /userCatAssign/assignedUsersByCategoryId/{categoryId}:
+ *   get:
+ *     tags:
+ *       - Assigned Users
+ *     description: Returns List Of All Assigned Users
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: categoryId
+ *         description: "category Id"
+ *         in: path
+ *         required: true
+ *       - name: Authorization
+ *         description: token
+ *         in: header
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK
+ *       404:
+ *         description: Not found
+ *       400:
+ *         description: Bad request
+ */
+
+router.get("/assignedUsersByCategoryId/:categoryId", (req, res, next) => {
+
+    verifyToken(req, res, tokendata => {
+        let cId = req.params.categoryId;
+
+        db.query(UserAssign.getAllAssignUsersByCategoryId(cId), (err, data) => {
+
+            if (!err) {
+                if (data && data.length > 0) {
+                    res.status(200).json({
+                        "assignedUsers": data,
+                        message: "Assigned Users List Found"
+                    });
+                } else {
+                    res.status(200).json({
+                        message: "No record found"
+                    });
+                }
+            }
+        });
+    })
+});
+
+/**
+ * @swagger
+ * /userCatAssign/assignedUsersByAssetId/{assetId}:
+ *   get:
+ *     tags:
+ *       - Assigned Users
+ *     description: Returns List Of All Assigned Users
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: assetId
+ *         description: "asset Id"
+ *         in: path
+ *         required: true
+ *       - name: Authorization
+ *         description: token
+ *         in: header
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK
+ *       404:
+ *         description: Not found
+ *       400:
+ *         description: Bad request
+ */
+
+router.get("/assignedUsersByAssetId/:assetId", (req, res, next) => {
+
+    verifyToken(req, res, tokendata => {
+
+        let aId = req.params.assetId;
+
+        db.query(UserAssign.getAllAssignUsersByAssetId(aId), (err, data) => {
+            if (!err) {
+                if (data && data.length > 0) {
+                    res.status(200).json({
+                        "assignedUsers": data,
+                        message: "Assigned Users List Found"
+                    });
+                } else {
+                    res.status(200).json({
+                        message: "No record found"
+                    });
+                }
+            }
+        });
     })
 });
 

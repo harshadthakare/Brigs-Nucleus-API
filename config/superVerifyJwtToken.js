@@ -6,7 +6,7 @@ const superVerifyToken = (req, res, next) => {
 
     let token = req.headers.authorization;
     if (!token) {
-        return res.status(403).send({
+        return res.status(500).send({
             auth: false, message: 'No token provided.'
         });
     }
@@ -18,7 +18,16 @@ const superVerifyToken = (req, res, next) => {
             });
 
         } else {
-            next(decoded);
+             if (decoded.accessLevel != 1) {
+                return res.status(500).send({
+                    auth: false,
+                    message: 'Fail to Authentication.'
+                });
+    
+            }
+            else{
+                next(decoded);
+            }
         }
 	});
 

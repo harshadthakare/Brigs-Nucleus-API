@@ -43,5 +43,10 @@ class Manufacturer {
         WHERE manufacturerId = ${manufacturerId}`;
         return sql;
     }
+
+    static getManufacturerAssignedOrNot(manufacturerId) {
+        let sql = `SELECT m.manufacturerId,a.assetTitle from asset a JOIN manufacturer m ON a.manufacturerIdFK = m.manufacturerId WHERE m.manufacturerId = ${manufacturerId}`;
+        return sql;
+    }
 }
 module.exports = Manufacturer;

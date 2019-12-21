@@ -58,7 +58,8 @@ router.get("/categoryList", (req, res, next) => {
                     })
                 } else {
                     res.status(200).json({
-                        status: false,
+                        status: true,
+                        "assetCategory": [],
                         message: "Asset Category List Not found"
                     });
                 }
@@ -191,11 +192,13 @@ router.post("/addAssetCategory", [
         db.query(assetcategory.addAssetCategorySQL(), (err, data) => {
             if (!err) {
                 res.status(200).json({
+                    status: true,
                     message: "Asset Category added successfully",
                     Id: data.insertId
                 });
             } else {
-                res.status(400).json({
+                res.status(200).json({
+                    status: false,
                     message: "Something went wrong, Please try again"
                 });
             }
@@ -270,11 +273,13 @@ router.put("/updateAssetCategory/:categoryId", [
 
                         if (data && data.affectedRows > 0) {
                             res.status(200).json({
+                                status: true,
                                 message: `Asset Category updated successfully`,
                                 affectedRows: data.affectedRows
                             })
                         } else {
-                            res.status(400).json({
+                            res.status(200).json({
+                                status: false,
                                 message: "Something went wrong, Please try again"
                             });
                         }
@@ -284,7 +289,8 @@ router.put("/updateAssetCategory/:categoryId", [
                 });
             }
             else {
-                res.status(404).json({
+                res.status(200).json({
+                    status: false,
                     message: "Asset Category ID is not available"
                 });
             }
@@ -325,31 +331,44 @@ router.put("/deleteAssetCategory/:categoryId", (req, res, next) => {
 
         db.query(AssetCategory.checkAssetCategoryId(cId), (err, data) => {
             if (data.length > 0) {
-                db.query(AssetCategory.deleteAssetCategoryByIdSQL(cId), (err, data) => {
-                    if (!err) {
-                        if (data && data.affectedRows > 0) {
-                            res.status(200).json({
-                                message: "Asset Category deleted successfully",
-                                affectedRows: data.affectedRows
-                            });
-                        } else {
-                            res.status(400).json({
-                                message: "Asset Category is not deleted"
-                            });
-                        }
+                db.query(AssetCategory.getCategoryAssignedOrNot(cId), (err1, data1) => {
+                    if (data1 && data1.length == 0) {
+                        db.query(AssetCategory.deleteAssetCategoryByIdSQL(cId), (err, data) => {
+                            if (!err) {
+                                if (data && data.affectedRows > 0) {
+                                    res.status(200).json({
+                                        status: true,
+                                        message: "Asset Category deleted successfully",
+                                        affectedRows: data.affectedRows
+                                    });
+                                } else {
+                                    res.status(200).json({
+                                        status: false,
+                                        message: "Asset Category is not deleted"
+                                    });
+                                }
+                            } else {
+                                console.log(err.message);
+                            }
+                        });
                     } else {
-                        console.log(err.message);
+                        res.status(200).json({
+                            status: false,
+                            message: "Can't delete, Asset-Category is already assigned!"
+                        });
                     }
                 });
             }
             else {
-                res.status(400).json({
+                res.status(200).json({
+                    status: false,
                     message: "Already deleted"
                 });
             }
         });
     })
 });
+
 /**
  * @swagger
  * /assetcategories/selectAssetCategory:
@@ -393,4 +412,5 @@ router.get("/selectAssetCategory", (req, res, next) => {
         });
     })
 });
+
 module.exports = router;
