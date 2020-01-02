@@ -381,7 +381,6 @@ router.put("/updateUser/:userId", [
     // validation rules start 
     check('firstName').trim().isAlpha().withMessage('Only characters are allowed'),
     check('lastName').trim().isAlpha().withMessage('Only characters are allowed'),
-    check('profileImage').trim().isString().withMessage("Please Add Profile Image"),
     check('departmentIdFK').trim().custom((value, { req }) => {
         if (value < 0 || isNaN(value)) {
             throw new Error('Value can not be less than 0');
@@ -397,8 +396,7 @@ router.put("/updateUser/:userId", [
         return true;
     }),
     check('mobileNumber').trim().isInt().isLength({ min: 10, max: 10 }).withMessage("Mobile number must be 10 digit"),
-    check('emailId').trim().normalizeEmail().isEmail().withMessage("Enter valid email id"),
-    check('password').isLength({ min: 6 }).withMessage('must be at least 6 chars long')
+    check('emailId').trim().normalizeEmail().isEmail().withMessage("Enter valid email id")
     // validation rules end 1
 ],
     (req, res, next) => {

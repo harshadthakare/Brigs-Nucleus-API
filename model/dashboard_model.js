@@ -16,15 +16,19 @@ class Dashboard {
                     WHERE a.organizationIdFK = ${organizationIdFK} AND a.isVerified = 1 AND a.isDeleted = 0 AND c.isDeleted = 0`;
         return sql;
     }
-    static getAllNotDoneMaintenceAssets(organizationIdFK) {
+
+    static getAllNotDoneMaintenceAssets(organizationIdFK, limit = 0, start = 0) {
+        let startLimit = limit * start;
+
+        let limitString = (limit > 0) ? `LIMIT ${startLimit}, ${limit}` : '';
 
         let sql = `SELECT a.assetId,a.assetCode,a.assetTitle,a.modelNumber,a.companyAssetNo,c.title AS categoryName,CONCAT('${BASE_URL}','',a.image) as assetImage
                    FROM asset a 
                    JOIN assetcatrelation a1 ON a1.assetIdFK = a.assetId 
                    JOIN category c ON a1.categoryIdFK = c.categoryId 
                    LEFT JOIN donechecklist d ON d.assetIdFK = a.assetId    
-                   WHERE d.assetIdFK IS NULL AND a.organizationIdFK = ${organizationIdFK} AND a.isDeleted = 0
-                   ORDER BY a.createdOn DESC `;
+                   WHERE d.assetIdFK IS NULL AND a.organizationIdFK = ${organizationIdFK} AND a.isDeleted = 0 AND a.isVerified = 1 AND isActive = 1 AND isRetired = 0
+                   ORDER BY a.createdOn DESC ${limitString}`;
         return sql;
     }
     static getAllSuperCounts() {
@@ -33,7 +37,8 @@ class Dashboard {
                    FROM organization WHERE isDeleted = 0`;
         return sql;
     }
-    // let sql = `SELECT sum(IF(Month(createdOn) = 1, 1,0)) AS january, 
+    static getAllOrganizationCreationCounts(year) {
+        // let sql = `SELECT sum(IF(Month(createdOn) = 1, 1,0)) AS january, 
     //           sum(IF(month(createdOn) = 2, 1,0)) AS february,
     //           sum(IF(month(createdOn) = 3, 1,0)) AS march, 
     //           sum(IF(month(createdOn) = 4, 1,0)) AS april, 
@@ -46,17 +51,18 @@ class Dashboard {
     //           sum(IF(month(createdOn) = 11, 1,0)) AS november,
     //           sum(IF(month(createdOn) = 12, 1,0)) AS december 
     // FROM organization WHERE isDeleted = 0 AND year(createdOn) = ${year}`;
-    static getAllOrganizationCreationCounts(year) {
         let sql = `SELECT MONTH(createdOn) AS monthCreatedON ,COUNT(*) AS totalOrganizations FROM organization 
         WHERE YEAR(createdOn)= ${year} AND isDeleted = 0 GROUP BY MONTH(createdOn)`;
         return sql;
     }
-
     static getAlltopOrganizationsAssetsCounts() {
         let sql = `SELECT organizationId,organizationName,
-                 (SELECT COUNT(*) FROM asset WHERE organizationIdFK = organizationId AND isDeleted = 0) AS totalAssets
-                 FROM organization
-                 WHERE isDeleted = 0 GROUP BY totalAssets DESC LIMIT 0, 5`;
+                    (SELECT COUNT(assetId) FROM asset a 
+                    JOIN assetcatrelation a1 ON a1.assetIdFK = a.assetId 
+                    JOIN category c ON a1.categoryIdFK = c.categoryId 
+                    WHERE a.organizationIdFK = organizationId AND a.isVerified = 1 AND a.isDeleted = 0 AND c.isDeleted = 0) AS totalAssets
+                FROM organization
+                WHERE isDeleted = 0 GROUP BY totalAssets DESC LIMIT 0, 5`;
         return sql;
     }
     static getAllAssetsCreationCounts(organizationIdFK, year) {
@@ -67,15 +73,6 @@ class Dashboard {
     static getTotalComplaintsAssignedCounts(organizationIdFK, year) {
         let sql = `SELECT MONTH(createdOn) AS monthCreatedON ,COUNT(*) AS totalComplaints FROM complaint
         WHERE organizationIdFK = ${organizationIdFK} AND complaintStatusIdFK = 2 AND YEAR(createdOn)= ${year} AND isDeleted = 0 GROUP BY MONTH(createdOn)`;
-        return sql;
-    }
-    static getMaintenacePendingAssetsCounts(organizationIdFK) {
-        let sql = `SELECT categoryId,title AS categoryTitle,
-                 (SELECT COUNT(a.assetIdFK) FROM assetcatrelation a
-                  JOIN asset a1 ON a.assetIdFK = a1.assetId 
-                  WHERE a.categoryIdFK= categoryId  AND a1.isDeleted = 0) AS totalAssets
-                  FROM category 
-                  WHERE organizationIdFK = ${organizationIdFK} AND isDeleted = 0`;
         return sql;
     }
     static getCategoryWiseAssetsCounts(organizationIdFK) {
@@ -96,7 +93,6 @@ class Dashboard {
                   WHERE c.organizationIdFK =${organizationIdFK} and c.isDeleted = 0`;
         return sql;
     }
-
     static getInstallationLocAssetsCounts(organizationIdFK) {
         let sql = `SELECT installationLocationTypeId,title AS installationLocationName,
                     (SELECT COUNT(a.assetId) FROM asset a 

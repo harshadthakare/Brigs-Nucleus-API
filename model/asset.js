@@ -31,23 +31,31 @@ class Asset {
 
     static getAssetByIdSQL(assetId) {
         let sql = `SELECT a.assetId,a.assetTitle,a2.categoryIdFK,c.title as categoryName,a.assetCode,a.modelNumber,a.companyAssetNo,
-                   a.description,CONCAT('${BASE_URL}','',a.image) as image,DATE_FORMAT(a.installationDate,'%d %M %Y') as installationDate,a.installedLocation,
-                   i.title as installedAt,a.installationLocationTypeIdFK,CONCAT('${BASE_URL}',a.userGuideBook) as userGuideBook,a.checkingDuration,d.title as durationTitle,
-                   a.durationTypeIdFK,a.warrenty,d.title as warrentyPeriod,a.warrantyDurationTypeIdFK,o.organizationName,d1.departmentTitle,a.departmentIdFK,
-                   CONCAT(s.firstName,' ', s.lastName) AS supplierName,a.supplierIdFK,m.title as manufacturerName,a.manufacturerIdFK,
-                   (SELECT COUNT(doneChecklistId)as totalDoneChecklist from donechecklist WHERE assetIdFK = assetId AND isDeleted = 0) as totalDoneChecklist,
-                   (SELECT COUNT(documentId)as totalDocuments from document WHERE documentTypeIdFK = 2 AND masterId = assetId AND isDeleted = 0) as totalDocuments,
-                   (SELECT COUNT(userCatAssignmentId) AS totalAssignedUsers FROM usercatassignment WHERE assignmentTypeIdFK = 3 AND masterIdFK = assetId AND isDeleted = 0) as totalAssignedUsers,
-                   IF(a.isActive = 1, 'true','false') AS isActive,IF(a.isRetired = 1, 'true','false') AS isRetired,IF(a.isVerified = 1, 'true','false') AS isVerified 
-                   from asset a LEFT JOIN installationlocationtype i on a.installationLocationTypeIdFK = i.installationLocationTypeId
-                   LEFT JOIN durationtype d ON a.durationTypeIdFK = d.durationTypeId
-                   LEFT JOIN department d1 ON a.departmentIdFK = d1.departmentId
-                   LEFT JOIN organization o ON a.organizationIdFK = o.organizationId
-                   LEFT JOIN supplier s ON a.supplierIdFK = s.supplierId
-                   LEFT JOIN manufacturer m ON a.manufacturerIdFK = m.manufacturerId
-                   LEFT JOIN assetcatrelation a2 ON a2.assetIdFK = a.assetId
-                   LEFT JOIN category c on a2.categoryIdFK = c.categoryId
-                   WHERE a.isDeleted = 0 AND a.assetId = ${assetId}`;
+        a.description,CONCAT('${BASE_URL}','',a.image) as image,DATE_FORMAT(a.installationDate,'%d %M %Y') as installationDate,
+        a.installedLocation,i.title as installedAt,a.installationLocationTypeIdFK,CONCAT('${BASE_URL}',a.userGuideBook) as userGuideBook,
+        a.checkingDuration,d.title as durationTitle,a.durationTypeIdFK,a.warrenty,d.title as warrentyPeriod,a.warrantyDurationTypeIdFK,
+        o.organizationName,d1.departmentTitle,a.departmentIdFK,CONCAT(s.firstName,' ', s.lastName) AS supplierName,a.supplierIdFK,m.title as manufacturerName,a.manufacturerIdFK,
+            (SELECT COUNT(doneChecklistId)as totalDoneChecklist from donechecklist WHERE assetIdFK = assetId AND isDeleted = 0) as totalDoneChecklist,
+            (SELECT COUNT(documentId)as totalDocuments from document WHERE documentTypeIdFK = 2 AND masterId = assetId AND isDeleted = 0) as totalDocuments,
+            (SELECT COUNT(userCatAssignmentId) AS totalAssignedUsers FROM usercatassignment WHERE assignmentTypeIdFK = 3 AND masterIdFK = assetId AND isDeleted = 0) as totalAssignedUsers,
+        IF(a.isActive = 1, 'true','false') AS isActive,IF(a.isRetired = 1, 'true','false') AS isRetired,
+        IF(a.isVerified = 1, 'true','false') AS isVerified,
+        tu.title as typeOfUser, 
+        CASE 
+            WHEN a.typeOfUserIdFK = 1 THEN (SELECT CONCAT(firstName ,' ', lastName)as raiseByName FROM superadmin WHERE superAdminId = a.addedBy)
+            WHEN a.typeOfUserIdFK = 2 THEN (SELECT CONCAT(firstName ,' ', lastName)as raiseByName FROM admin WHERE adminId = a.addedBy)
+            WHEN a.typeOfUserIdFK = 3 THEN (SELECT CONCAT(firstName ,' ', lastName)as raiseByName FROM user WHERE userId = a.addedBy)
+        END AS addedByName from asset a
+        LEFT JOIN installationlocationtype i on a.installationLocationTypeIdFK = i.installationLocationTypeId
+        LEFT JOIN durationtype d ON a.durationTypeIdFK = d.durationTypeId
+        LEFT JOIN department d1 ON a.departmentIdFK = d1.departmentId
+        LEFT JOIN organization o ON a.organizationIdFK = o.organizationId
+        LEFT JOIN supplier s ON a.supplierIdFK = s.supplierId
+        LEFT JOIN manufacturer m ON a.manufacturerIdFK = m.manufacturerId
+        LEFT JOIN assetcatrelation a2 ON a2.assetIdFK = a.assetId
+        LEFT JOIN category c on a2.categoryIdFK = c.categoryId
+        LEFT JOIN typeofuser tu ON a.typeOfUserIdFK = tu.typeOfUserId
+        WHERE a.isDeleted = 0 AND a.assetId = ${assetId}`;
         return sql;
     }
 
@@ -179,7 +187,10 @@ class Asset {
         WHERE a.organizationIdFK =${organizationIdFK} AND a2.categoryIdFK =${categoryId} AND a.isDeleted = 0 ORDER BY a.createdOn DESC`;
         return sql;
     }
-    static getAllIsDangerAssetsSQL(organizationIdFK) {
+    static getAllIsDangerAssetsSQL(organizationIdFK, limit = 0, start = 0) {
+        let startLimit = limit * start;
+
+        let limitString = (limit > 0) ? `LIMIT ${startLimit}, ${limit}` : '';
 
         let sql = `SELECT DISTINCT a.assetId,a.assetTitle,c.categoryId,c.title as categoryName,a.assetCode,a.modelNumber,a.companyAssetNo,
             CONCAT('${BASE_URL}','',a.image) as assetImage FROM asset a 
@@ -188,7 +199,8 @@ class Asset {
             JOIN checklist ch ON ch.categoryIdFK = c.categoryId 
             JOIN question q ON q.checkListIdFK = ch.checklistId 
             JOIN questionoption qo ON qo.questionIdFK = q.questionId 
-            WHERE a.organizationIdFK = ${organizationIdFK} AND a.isDeleted = 0 AND qo.isDanger = 1 AND a.isVerified = 1 ORDER BY a.createdOn DESC `;
+            WHERE a.organizationIdFK = ${organizationIdFK} 
+            AND a.isDeleted = 0 AND qo.isDanger = 1 AND a.isVerified = 1 AND isActive = 1 AND isRetired = 0 ORDER BY a.createdOn DESC ${limitString}`;
         return sql;
     }
     updateInstallationlocByAssetIdSQL(assetId) {

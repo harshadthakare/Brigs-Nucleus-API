@@ -12,7 +12,10 @@ class Organization {
     let sql = `SELECT organizationId,organizationName,organizationCode,description,DATE_FORMAT(createdOn, '%d %M %Y')as createdDate,
                CASE
                    WHEN organizationId = 1 IS NOT NULL THEN 
-                    (SELECT COUNT(assetId) as totalAssets FROM asset WHERE organizationIdFK = organizationId AND isDeleted = 0)
+                    (SELECT COUNT(assetId) FROM asset a 
+                    JOIN assetcatrelation a1 ON a1.assetIdFK = a.assetId 
+                    JOIN category c ON a1.categoryIdFK = c.categoryId 
+                    WHERE a.organizationIdFK = organizationId AND a.isVerified = 1 AND a.isDeleted = 0 AND c.isDeleted = 0)
                     ELSE 0 
                    END as totalAssets,
                CASE
@@ -35,7 +38,10 @@ class Organization {
     let sql = `SELECT organizationId,organizationName,organizationCode,description,DATE_FORMAT(createdOn, '%d %M %Y')as createdDate,
                CASE
                    WHEN organizationId = ${organizationId} IS NOT NULL THEN 
-                      (SELECT COUNT(assetId) as totalAssets FROM asset WHERE organizationIdFK = organizationId AND isDeleted = 0)
+                      (SELECT COUNT(assetId) FROM asset a 
+                      JOIN assetcatrelation a1 ON a1.assetIdFK = a.assetId 
+                      JOIN category c ON a1.categoryIdFK = c.categoryId 
+                      WHERE a.organizationIdFK = organizationId AND a.isVerified = 1 AND a.isDeleted = 0 AND c.isDeleted = 0)
                       ELSE 0 
                END as totalAssets,
                CASE

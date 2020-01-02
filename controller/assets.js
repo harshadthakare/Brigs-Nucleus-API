@@ -1505,7 +1505,7 @@ router.get("/listOfPendingVerifiedAssets/:pageNo", (req, res, next) => {
  *         type: integer
  *         required: true
  *       - name: Verified Data
- *         description: Verifeid Data from body
+ *         description: Verified Data from body
  *         in: body
  *         required: true
  *       - name: Authorization

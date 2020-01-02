@@ -63,9 +63,7 @@ class User {
             profileImage = '${this.profileImage}',
             departmentIdFK = ${this.departmentIdFK},
             mobileNumber ='${this.mobileNumber}',
-            emailId ='${this.emailId}',
-            password ='${this.password}' 
-            
+            emailId ='${this.emailId}'
             WHERE userId = ${userId}`
         return sql;
     }
@@ -91,7 +89,7 @@ class User {
         let sql = `SELECT u.userId as userIdFK,u.firstName,u.lastName 
         FROM user u INNER JOIN department d ON u.departmentIdFK=d.departmentId
         INNER JOIN organization o ON d.organizationIdFK = o.organizationId 
-        WHERE u.isDeleted = 0 AND o.organizationId = ${organizationIdFK}`;
+        WHERE u.isDeleted = 0 AND u.isActive = 1 AND o.organizationId = ${organizationIdFK}`;
         return sql;
     }
 
